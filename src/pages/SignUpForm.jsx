@@ -1,37 +1,60 @@
 import { useState } from "react"
-import { signUp } from "../services/auth"
 import { useNavigate } from "react-router"
+import { signUp } from "../services/auth"
 
-const SignUpForm = (props) => {
+const SignUpForm = function (props)
+{
 
     const navigate = useNavigate()
 
     const initialState = {
-        username: '',
+        name: '',
+        email: '',
         password: '',
-        confirmPassword: '',
+        role: 'client'
     }
 
     const [formData, setFormData] = useState(initialState)
+
     const [message, setMessage] = useState('')
 
-    const handleChange = (event) => {
+    const [loading, setLoading] = useState(false)
+
+    const handleChange = function (event)
+    {
+        setMessage('')
+
         setFormData({...formData, [event.target.name]: event.target.value})
     }
-    const handleSubmit = async (event) => {
+
+    const handleSubmit = async function (event)
+    {
         event.preventDefault()
+        
+        setLoading(true)
+        
         try {
             const newUser = await signUp(formData)
+
             props.setUser(newUser)
+
             setFormData(initialState)
+            
+            setLoading(false)
+
             navigate('/')
-        } catch (err) {
+
+        } catch (err)
+        {
             setMessage(err.message)
+            
+            setLoading(false)
         }
     }
 
-    const isFormValid = () => {
-        if(formData.username && formData.password && formData.password === formData.confirmPassword) {
+    const isFormValid = function ()
+    {
+        if (formData.name && formData.email && formData.password && formData.role) {
             return true
         } else return false
     }
@@ -40,18 +63,31 @@ const SignUpForm = (props) => {
         <section className="card">
             <header>
                 <h1>Sign Up</h1>
-                <p>{message}</p>
+                <p className="error">{message}</p>
             </header>
+
             <form onSubmit={handleSubmit}>
-                Username:
-                <input type="text" name="username" onChange={handleChange} value={formData.username} required />
+                Role:
+                <div>
+                    <input type="radio" name="role" value="client" checked={formData.role === 'client'} onChange={handleChange} /> Client
+
+                    <input type="radio" name="role" value="freelancer" checked={formData.role === 'freelancer'} onChange={handleChange} /> Freelancer
+                </div>
+
+                Full Name:
+                <input type="text" name="name" value={formData.name} required onChange={handleChange} />
+
+                Email Address:
+                <input type="email" name="email" value={formData.email} required onChange={handleChange} />
+
                 Password:
-                <input type="password" name="password" onChange={handleChange} value={formData.password} required />
-                Confirm Password:
-                <input type="password" name="confirmPassword" onChange={handleChange} value={formData.confirmPassword} required />
+                <input type="password" name="password" value={formData.password} required onChange={handleChange} />
+
                 <div className="actions">
-                    <button type="submit" disabled={!isFormValid()}>Sign Up</button>
-                    <button>Cancel</button>
+                    <button type="submit" disabled={!isFormValid() || loading}>
+                        {loading ? 'Signing Up...' : 'Sign Up'}
+                    </button>
+                    <button type="button" onClick={() => navigate('/sign-in')}>Go to Sign In</button>
                 </div>
             </form>
         </section>
@@ -59,4 +95,3 @@ const SignUpForm = (props) => {
 }
 
 export default SignUpForm
-

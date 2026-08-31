@@ -13,7 +13,9 @@ const SignInForm = function (props)
     }
     
     const [formData, setFormData] = useState(initialState)
+
     const [message, setMessage] = useState('')
+
     const [loading, setLoading] = useState(false)
 
     const handleChange = function (event)  
@@ -71,7 +73,9 @@ const SignInForm = function (props)
             
             <hr />
             <div className="actions">
+                
                 <button type="button">Continue with Google</button>
+
                 <button type="button">Continue with LinkedIn</button>
             </div>
         </section>
