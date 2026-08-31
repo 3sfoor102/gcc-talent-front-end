@@ -1,7 +1,7 @@
 const JobDetailsPage = () => {
     return (
         <>
-        <h1>Here is the Showpage for a job</h1>
+            <h1>Here is the Showpage for a job</h1>
         </>
     );
 };
