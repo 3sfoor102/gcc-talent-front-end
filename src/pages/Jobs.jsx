@@ -33,6 +33,19 @@ const JobsPage = () => {
         fetchJobs()
     }, [currentPage])
 
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((prev) => prev - 1)
+        }
+    }
+
+    const handleNextPage = () => {
+        const maxPage = Math.ceil(meta.total / (meta.limit || 10))
+        if (currentPage < maxPage) {
+            setCurrentPage((prev) => prev + 1)
+        }
+    }
+
     return (
         <>
             <h1>Available Jobs</h1>
@@ -40,7 +53,6 @@ const JobsPage = () => {
                 No. of posts: {meta.total}
             </h3>
             <div>
-
                 {
 
                     jobs.map((job) => (
@@ -62,9 +74,25 @@ const JobsPage = () => {
                             <hr />
                         </div>
                     ))
-
-
                 }
+            </div>
+
+            <div>
+                <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage <= 1}
+                >
+                    Previous
+                </button>
+                <span>
+                    Page {currentPage} of {Math.ceil(meta.total / (meta.limit)) || 1}
+                </span>
+                <button
+                    onClick={handleNextPage}
+                    disabled={currentPage >= (Math.ceil(meta.total / (meta.limit)))}
+                >
+                    Next
+                </button>
             </div>
         </>
     )
