@@ -15,6 +15,7 @@ const JobsPage = () => {
     const [currentPage, setCurrentPage] = useState(1)
 
 
+
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -34,7 +35,37 @@ const JobsPage = () => {
 
     return (
         <>
-            <h1>Here we list jobs</h1>
+            <h1>Available Jobs</h1>
+            <h3>
+                No. of posts: {meta.total}
+            </h3>
+            <div>
+
+                {
+
+                    jobs.map((job) => (
+                        <div key={job._id}>
+                            <h3>{job.title}</h3>
+                            <p>{job.description}</p>
+                            <ul>
+                                <li>
+                                    <strong>Budget:</strong> ${job.budgetMin || 0} - $
+                                    {job.budgetMax || 0}
+                                </li>
+                                <li>
+                                    <strong>Type:</strong> {job.budgetType}
+                                </li>
+                                <li>
+                                    <strong>Level:</strong> {job.experienceLevel}
+                                </li>
+                            </ul>
+                            <hr />
+                        </div>
+                    ))
+
+
+                }
+            </div>
         </>
     )
 };
