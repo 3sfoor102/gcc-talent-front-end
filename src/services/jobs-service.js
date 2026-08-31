@@ -35,23 +35,23 @@ const createJob = async (jobData) => {
 };
 
 const updateJob = async (jobId, jobData) => {
-  const response = await axiosInstance.patch(`/jobs/${jobId}`, jobData);
-  return response.data.data;
+    const response = await axiosInstance.patch(`/jobs/${jobId}`, jobData);
+    return response.data.data;
 };
 
 const deleteJob = async (jobId) => {
-  const response = await axiosInstance.delete(`/jobs/${jobId}`);
-  return response.data.data;
+    const response = await axiosInstance.delete(`/jobs/${jobId}`);
+    return response.data.data;
 };
 
 const closeJob = async (jobId) => {
-  const response = await axiosInstance.post(`/jobs/${jobId}/close`, { status: 'closed' });
-  return response.data.data;
+    const response = await axiosInstance.post(`/jobs/${jobId}/close`, { status: 'closed' });
+    return response.data.data;
 };
 
 const reopenJob = async (jobId) => {
-  const response = await axiosInstance.post(`/jobs/${jobId}/reopen`, { status: 'open' });
-  return response.data.data;
+    const response = await axiosInstance.post(`/jobs/${jobId}/reopen`, { status: 'open' });
+    return response.data.data;
 };
 
 export {
