@@ -31,11 +31,8 @@ const depositFundsApi = async ({amount, card})=> {
 }
 
 
-
-
-
-
 export {
 fetchUserWallet, depositFundsApi,
 
 }
+
