@@ -13,11 +13,14 @@ const JobsPage = () => {
     const [jobs, setJobs] = useState([])
     const [meta, setMeta] = useState(initialState)
     const [currentPage, setCurrentPage] = useState(1)
-
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
 
 
     useEffect(() => {
         const fetchJobs = async () => {
+            setLoading(true)
+            setError(null)
             try {
                 const response = await indexJob({
                     page: currentPage,
@@ -28,6 +31,8 @@ const JobsPage = () => {
                 setMeta(response.meta)
             } catch (err) {
                 setError(err.message)
+            } finally {
+                setLoading(false)
             }
         }
         fetchJobs()
@@ -47,54 +52,73 @@ const JobsPage = () => {
     }
 
     return (
-        <>
-            <h1>Available Jobs</h1>
-            <h3>
-                No. of posts: {meta.total}
-            </h3>
-            <div>
-                {
+        <div>
 
-                    jobs.map((job) => (
-                        <div key={job._id}>
-                            <h3>{job.title}</h3>
-                            <p>{job.description}</p>
-                            <ul>
-                                <li>
-                                    <strong>Budget:</strong> ${job.budgetMin || 0} - $
-                                    {job.budgetMax || 0}
-                                </li>
-                                <li>
-                                    <strong>Type:</strong> {job.budgetType}
-                                </li>
-                                <li>
-                                    <strong>Level:</strong> {job.experienceLevel}
-                                </li>
-                            </ul>
-                            <hr />
+
+            {loading && <p>Loading jobs...</p>}
+            {error && <p>{error}</p>}
+
+            {!loading && !error && jobs.length === 0 && <p>No jobs found.</p>}
+
+
+            {!loading && !error && jobs.length > 0 && (
+                <>
+
+                    <div>
+
+                        {/* delete it  */}
+                        <div className="ToDelete">
+                            <h1>Available Jobs</h1>
+                            <h3>
+                                No. of posts: {meta.total}
+                            </h3>
                         </div>
-                    ))
-                }
-            </div>
 
-            <div>
-                <button
-                    onClick={handlePrevPage}
-                    disabled={currentPage <= 1}
-                >
-                    Previous
-                </button>
-                <span>
-                    Page {currentPage} of {Math.ceil(meta.total / (meta.limit)) || 1}
-                </span>
-                <button
-                    onClick={handleNextPage}
-                    disabled={currentPage >= (Math.ceil(meta.total / (meta.limit)))}
-                >
-                    Next
-                </button>
-            </div>
-        </>
+
+
+                        {
+                            jobs.map((job) => (
+                                <div key={job._id}>
+                                    <h3>{job.title}</h3>
+                                    <p>{job.description}</p>
+                                    <ul>
+                                        <li>
+                                            <strong>Budget:</strong> ${job.budgetMin || 0} - $
+                                            {job.budgetMax || 0}
+                                        </li>
+                                        <li>
+                                            <strong>Type:</strong> {job.budgetType}
+                                        </li>
+                                        <li>
+                                            <strong>Level:</strong> {job.experienceLevel}
+                                        </li>
+                                    </ul>
+                                    <hr />
+                                </div>
+                            ))
+                        }
+                    </div>
+
+                    <div>
+                        <button
+                            onClick={handlePrevPage}
+                            disabled={currentPage <= 1}
+                        >
+                            Previous
+                        </button>
+                        <span>
+                            Page {currentPage} of {Math.ceil(meta.total / (meta.limit)) || 1}
+                        </span>
+                        <button
+                            onClick={handleNextPage}
+                            disabled={currentPage >= (Math.ceil(meta.total / (meta.limit)))}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </>
+            )}
+        </div>
     )
 };
 
