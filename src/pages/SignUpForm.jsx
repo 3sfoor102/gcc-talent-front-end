@@ -88,7 +88,6 @@ const SignUpForm = function (props)
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     
-                    {/* Role Selection */}
                     <div className="flex gap-4 mb-2">
                         <label className="flex-1 cursor-pointer border border-gray-200 rounded-lg p-3 flex items-center gap-2 hover:border-gcc-teal transition-colors bg-white">
                             <input type="radio" className="radio-custom w-4 h-4" name="role" value="client" checked={formData.role === 'client'} onChange={handleChange} />
@@ -121,7 +120,7 @@ const SignUpForm = function (props)
                         <input type="password" name="passwordConfirm" id="signup-passwordConfirm" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.passwordConfirm} minLength="8" required onChange={handleChange} />
                     </div>
 
-                    <button type="submit" className="w-full bg-gcc-teal hover:bg-gcc-teal-dark text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2 transition-colors" disabled={loading}>
+                    <button type="submit" className="w-full bg-[#224548] text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2" disabled={loading}>
                         {loading ? 'Creating Account...' : 'Create Account'}
                     </button>
                     
@@ -130,7 +129,6 @@ const SignUpForm = function (props)
                     </p>
 
                 </form>
-
                 <div className="flex items-center gap-3 my-6">
                     <div className="flex-1 h-px bg-gray-200"></div>
                     <span className="text-xs text-gray-400 uppercase tracking-wider">or continue with</span>

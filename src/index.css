@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gcc-teal: #224548;
-  --color-gcc-teal-dark: #1a3538;
-  --color-gcc-sand: #ffddb4;
-  --color-gcc-cream: #f0fcfd;
+  --color-brand-teal: #224548;
+  --color-brand-cream: #F7F0E9;
+  --color-teal-900: #1A3638;
+  --color-teal-600: #2E5A5E;
+  --color-accent-sand: #C9A77C;
+  --color-cream-200: #EFE4D8;
+  --color-ink: #1F2A2B;
 }
 
 body {
-  background-color: var(--color-gcc-cream);
-  font-family: 'Poppins', sans-serif;
+  background-color: var(--color-brand-cream);
+  color: var(--color-ink);
 }
 
 .glass-card {

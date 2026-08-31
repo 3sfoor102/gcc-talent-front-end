@@ -88,7 +88,7 @@ const SignInForm = function (props)
                         <input type="password" name="password" id="login-password" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.password} required onChange={handleChange} />
                     </div>
 
-                    <button type="submit" className="w-full bg-gcc-teal hover:bg-gcc-teal-dark text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2 transition-colors" disabled={loading}>
+                    <button type="submit" className="w-full bg-[#224548] text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2" disabled={loading}>
                         {loading ? 'Logging in...' : 'Login'}
                     </button>
 
