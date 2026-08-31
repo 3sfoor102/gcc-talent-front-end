@@ -49,6 +49,11 @@ const closeJob = async (jobId) => {
   return response.data.data;
 };
 
+const reopenJob = async (jobId) => {
+  const response = await axiosInstance.post(`/jobs/${jobId}/reopen`, { status: 'open' });
+  return response.data.data;
+};
+
 export {
     indexJob,
     showJob,
@@ -57,4 +62,5 @@ export {
     updateJob,
     deleteJob,
     closeJob,
+    reopenJob,
 }
