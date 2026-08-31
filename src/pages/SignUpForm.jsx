@@ -136,14 +136,14 @@ const SignUpForm = function (props)
                 </div>
                 
                 <div className="flex flex-col gap-3">
-                    <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+                    <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-[#EFE4D8] bg-white hover:bg-[#EFE4D8] transition-colors cursor-pointer">
                         <img className="w-5 h-5 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTzeer0Cc9AFBLW2Acd4r3sN55SlF_J8UZujUB4KCGYochyUWTBdRoiftO57VW7lKtcleervnF_03T8gUsA1valOFP43lRDu8ikMaAn3aVlDF-pnrgewr_G1BvhDe-EV8uyiaoLjMPp42VVSSKCebAvlUve62bkTK3dak8eJotikudGIdSJBYEm5gq3pzi4KzpTMPuMC-WHY9TRwYJe6PdivqdMJI-cvnGrwtGLDQD-Ub8rL7EBeRK" alt="Google" />
-                        <span className="text-sm font-semibold text-gray-700">Google</span>
+                        <span className="text-sm font-semibold text-[#1F2A2B]">Google</span>
                     </button>
                     
-                    <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
+                    <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-[#EFE4D8] bg-white hover:bg-[#EFE4D8] transition-colors cursor-pointer">
                         <img className="w-5 h-5 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRf4vrfkm3vh5JMVBg9oUGZvdFfdyNMWForCIcu1C02sFEgeW7ISklEdUueT4_ydC9pOlFz6uZh1aJSLBWnUx-_k7UXIVLGfXtyugeg1RskkEoyylHW8INYc_VLryU4dkJUe-vsmXQGqCZC7n1_8LliBNR2hQZHhHQbq3wQLvMNQF-ZMkN1jDQ-tzs7-3vvkIzFTHFBopb8GsvTS2qwNeoMi6jsgrYuSHgEZd5Cz8tZdD1EJo9opB-" alt="LinkedIn" />
-                        <span className="text-sm font-semibold text-gray-700">LinkedIn</span>
+                        <span className="text-sm font-semibold text-[#1F2A2B]">LinkedIn</span>
                     </button>
                 </div>
 
