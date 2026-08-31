@@ -20,6 +20,7 @@ const signUp = async function (formData)
         if (data.data.accessToken) 
         {
             localStorage.setItem('token', data.data.accessToken)
+            localStorage.setItem('user', JSON.stringify(data.data.user))
             return data.data.user
         }
 
@@ -50,6 +51,7 @@ const signIn = async function (formData)
         if (data.data.accessToken) 
         {
             localStorage.setItem('token', data.data.accessToken)
+            localStorage.setItem('user', JSON.stringify(data.data.user))
             return data.data.user
         }
 
@@ -59,7 +61,21 @@ const signIn = async function (formData)
     }
 }
 
+const signOut = function () 
+{
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+}
+
+const getUser = function () 
+{
+    const user = localStorage.getItem('user')
+    return user ? JSON.parse(user) : null
+}
+
 export {
     signUp,
     signIn,
+    signOut,
+    getUser,
 }

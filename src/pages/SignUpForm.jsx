@@ -103,22 +103,22 @@ const SignUpForm = function (props)
 
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-semibold text-gray-700" htmlFor="signup-name">Full Name</label>
-                        <input type="text" name="name" id="signup-name" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.name} placeholder="John Doe" required onChange={handleChange} />
+                        <input type="text" name="name" id="signup-name" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.name} required onChange={handleChange} />
                     </div>
 
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-semibold text-gray-700" htmlFor="signup-email">Email Address</label>
-                        <input type="email" name="email" id="signup-email" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.email} placeholder="name@company.com" required onChange={handleChange} />
+                        <input type="email" name="email" id="signup-email" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.email} required onChange={handleChange} />
                     </div>
 
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-semibold text-gray-700" htmlFor="signup-password">Password</label>
-                        <input type="password" name="password" id="signup-password" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.password} placeholder="Min 8 characters" minLength="8" required onChange={handleChange} />
+                        <input type="password" name="password" id="signup-password" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.password} minLength="8" required onChange={handleChange} />
                     </div>
 
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-semibold text-gray-700" htmlFor="signup-passwordConfirm">Confirm Password</label>
-                        <input type="password" name="passwordConfirm" id="signup-passwordConfirm" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.passwordConfirm} placeholder="••••••••" minLength="8" required onChange={handleChange} />
+                        <input type="password" name="passwordConfirm" id="signup-passwordConfirm" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.passwordConfirm} minLength="8" required onChange={handleChange} />
                     </div>
 
                     <button type="submit" className="w-full bg-gcc-teal hover:bg-gcc-teal-dark text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2 transition-colors" disabled={loading}>

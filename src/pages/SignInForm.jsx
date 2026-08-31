@@ -77,7 +77,7 @@ const SignInForm = function (props)
                     
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-semibold text-gray-700" htmlFor="login-email">Email Address</label>
-                        <input type="email" name="email" id="login-email" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.email} placeholder="name@company.com" required onChange={handleChange} />
+                        <input type="email" name="email" id="login-email" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.email} required onChange={handleChange} />
                     </div>
 
                     <div className="flex flex-col gap-1 relative">
@@ -85,7 +85,7 @@ const SignInForm = function (props)
                             <label className="text-sm font-semibold text-gray-700" htmlFor="login-password">Password</label>
                             <a className="text-xs font-medium text-gcc-teal hover:underline" href="#">Forgot Password?</a>
                         </div>
-                        <input type="password" name="password" id="login-password" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.password} placeholder="••••••••" required onChange={handleChange} />
+                        <input type="password" name="password" id="login-password" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.password} required onChange={handleChange} />
                     </div>
 
                     <button type="submit" className="w-full bg-gcc-teal hover:bg-gcc-teal-dark text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2 transition-colors" disabled={loading}>
