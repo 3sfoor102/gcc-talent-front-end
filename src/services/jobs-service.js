@@ -44,6 +44,11 @@ const deleteJob = async (jobId) => {
   return response.data.data;
 };
 
+const closeJob = async (jobId) => {
+  const response = await axiosInstance.post(`/jobs/${jobId}/close`, { status: 'closed' });
+  return response.data.data;
+};
+
 export {
     indexJob,
     showJob,
@@ -51,4 +56,5 @@ export {
     createJob,
     updateJob,
     deleteJob,
+    closeJob,
 }
