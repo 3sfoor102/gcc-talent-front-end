@@ -36,8 +36,12 @@ const indexJob = async (filters = {}) => {
     };
 };
 
+const showJob = async (jobId) => {
+    const response = await axiosInstance.get(`/jobs/${jobId}`);
+    return response.data.data;
+};
 
 export {
     indexJob,
-    
+    showJob,
 }
