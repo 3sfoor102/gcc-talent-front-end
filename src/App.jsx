@@ -7,6 +7,18 @@ import SignInForm from "./pages/SignInForm"
 import Landing from "./pages/Landing"
 import Dashboard from "./pages/Dashboard"
 
+// Ali Saleh's imports 
+
+
+// Ali Alasfoor's imports 
+
+
+// Hasan Ali's imports 
+
+
+
+
+
 const getUserFromToken = () => {
   const token = localStorage.getItem('token')
 
@@ -24,9 +36,31 @@ const App = () => {
       <Nav user={user} setUser={setUser} />
       <main className="app-main">
       <Routes>
+        // Auth & Admin & Dashboard Rouets 
         <Route path='/' element={user ? <Dashboard user={user} /> : <Landing />} />
         <Route path='/sign-up' element={<SignUpForm setUser={setUser} />} />
         <Route path='/sign-in' element={<SignInForm setUser={setUser} />} />
+
+
+        // Profile Routes
+
+
+        // Contract Routes
+
+
+        // Wallet Routes
+
+
+        // Jobs Routes
+
+
+        // Proposal Routes
+
+        
+        // Messages Routes
+
+
+
       </Routes>
       </main>
     </div>
