@@ -81,7 +81,7 @@ const SignUpForm = function (props)
                 <input type="email" name="email" value={formData.email} required onChange={handleChange} />
 
                 Password:
-                <input type="password" name="password" value={formData.password} required onChange={handleChange} />
+                <input type="password" name="password" value={formData.password} required onChange={handleChange} minLength={8} />
 
                 <div className="actions">
                     <button type="submit" disabled={!isFormValid() || loading}>
