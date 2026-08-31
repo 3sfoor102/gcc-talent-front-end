@@ -15,8 +15,10 @@ import Dashboard from "./pages/Dashboard"
 
 // Hasan Ali's imports 
 import JobsPage from "./pages/Jobs"
-
-
+import JobDetailsPage from "./pages/JobDetailsPage"
+import ClientJobsPage from "./pages/ClientJobsPage"
+import JobFormPage from "./pages/JobFormPage"
+import { Link } from "react-router"
 // End of Hasan's
 
 
@@ -49,15 +51,27 @@ const App = () => {
 
   return (
     <div>
+      <nav>
+        <ul>
+          <li><Link to="/jobs">All Jobs</Link></li>
+          <li><Link to="/jobs/my-jobs">My Posted Jobs</Link></li>
+          <li><Link to="/jobs/new">Post a Job</Link></li>
+        </ul>
+      </nav>
+
       <Routes>
-        <Route path='/' element={<JobsPage/>} />
-      </Routes>
+        {/* <Route path="/" element={  } /> */}
+        <Route path="/jobs" element={<JobsPage />} />
+        <Route path="/jobs/new" element={<JobFormPage />} />
+        <Route path="/jobs/my-jobs" element={<ClientJobsPage />} />
+        <Route path="/jobs/:jobId" element={<JobDetailsPage />} />
+        <Route path="/jobs/:jobId/edit" element={<JobFormPage />} />      </Routes>
     </div>
 
     // <div>
     //   <Nav user={user} setUser={setUser} />
     //   <main className="app-main">
-        // <Routes>
+    // <Routes>
     //     // Auth & Admin & Dashboard Rouets
     //       <Route path='/' element={user ? <Dashboard user={user} /> : <Landing />} />
     //       <Route path='/sign-up' element={<SignUpForm setUser={setUser} />} />
