@@ -15,9 +15,20 @@ const fetchUserWallet = async ()=>{
         return res.json()
   
 }   
-
-
-
+const depositFundsApi = async ({amount, card})=> {
+    const res = await fetch (`${BASE_URL/deposit}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`},
+        body: JSON.stringify({amount: Number(amount), card})
+    })
+    if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error?.message || '402 declined card')
+    }
+    return res.json()
+}
 
 
 
@@ -25,6 +36,6 @@ const fetchUserWallet = async ()=>{
 
 
 export {
-fetchUserWallet, 
+fetchUserWallet, depositFundsApi,
 
 }
