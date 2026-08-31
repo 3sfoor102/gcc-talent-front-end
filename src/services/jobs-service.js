@@ -39,10 +39,16 @@ const updateJob = async (jobId, jobData) => {
   return response.data.data;
 };
 
+const deleteJob = async (jobId) => {
+  const response = await axiosInstance.delete(`/jobs/${jobId}`);
+  return response.data.data;
+};
+
 export {
     indexJob,
     showJob,
     getClientJobs,
     createJob,
     updateJob,
+    deleteJob,
 }
