@@ -2,14 +2,18 @@ const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}/wallet`
 
 
 const fetchUserWallet = async ()=>{
-    try {
     const res = await fetch(`${BASE_URL}`, {
-        headers: {Authorization: `Bearer ${localStorage.getItem('token')}`},
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`},
     })
-        return res.json()
-    } catch (error) {
-        console.log(error)
+    if (!res.ok){
+        const errorData = await res.json()
+        throw new Error(errorData.error?.messeage || 'Failed to fetch wallet data')
     }
+        return res.json()
+  
 }   
 
 
@@ -21,5 +25,6 @@ const fetchUserWallet = async ()=>{
 
 
 export {
+fetchUserWallet, 
 
 }
