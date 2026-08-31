@@ -29,8 +29,14 @@ const getClientJobs = async (filters = {}) => {
     };
 };
 
+const createJob = async (jobData) => {
+    const response = await axiosInstance.post('/jobs', jobData);
+    return response.data.data;
+};
+
 export {
     indexJob,
     showJob,
     getClientJobs,
+    createJob,
 }
