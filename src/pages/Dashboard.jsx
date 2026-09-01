@@ -7,8 +7,8 @@ const Dashboard = (props) => {
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const usersData =  await index()
-            setAllUsers(usersData)
+            // const usersData =  await index()
+            // setAllUsers(usersData)
         }
         fetchUsers()
         

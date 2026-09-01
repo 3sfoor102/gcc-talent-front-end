@@ -2,7 +2,7 @@ import Nav from "./components/Nav"
 import SignUpForm from "./pages/SignUpForm"
 import './App.css'
 import { Routes, Route } from "react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import SignInForm from "./pages/SignInForm"
 import Landing from "./pages/Landing"
 import Dashboard from "./pages/Dashboard"
@@ -15,13 +15,50 @@ const getUserFromToken = () => {
 
   if (!token) return null
 
-  return JSON.parse(atob(token.split('.')[1])).payload
+  try {
+    const decoded = JSON.parse(atob(token.split('.')[1]))
+    return decoded.payload || decoded.user || decoded
+  } catch (err) {
+    return null
+  }
 }
 
 const App = () => {
 
   const [user, setUser] = useState(getUserFromToken())
-  
+
+  useEffect(() => {
+    const verifySession = async function () 
+    {
+        const token = localStorage.getItem('token')
+        
+        if (token) {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_BACK_END_SERVER_URL}/auth/verify`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                
+                const responseData = await res.json()
+                
+                if (res.ok) {
+                    const validUser = responseData.data?.user || responseData.user || responseData
+                    if (validUser) {
+                        setUser(validUser)
+                    }
+                } else {
+                    localStorage.removeItem('token')
+                    setUser(null)
+                }
+            } catch (err) {
+                console.error("Session verification failed:", err)
+            }
+        }
+    }
+
+    verifySession()
+  }, [])
+
   return (
     <div>
       <Nav user={user} setUser={setUser} />
