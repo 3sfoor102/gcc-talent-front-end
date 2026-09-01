@@ -40,8 +40,9 @@ const JobDetailsPage = ({ user }) => {
 
             {isOwner && (
                 <div>
-                    <Link to={`/jobs/${job._id}/edit`}>Edit Job</Link>
-                    <Link to="/jobs/my-jobs">View All Your Jobs</Link>
+                        <Link to={`/client/jobs/${job._id}/edit`}>Edit Job</Link>
+                        <Link to="/client/jobs">View All Your Jobs</Link>
+                        <Link to={`/client/jobs/${job._id}/proposals`}>View Proposals ({job.proposalsCount || 0})</Link>
                 </div>
             )}
 
