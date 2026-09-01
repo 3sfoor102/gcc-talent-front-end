@@ -150,7 +150,7 @@ const JobFormPage = () => {
             } else {
                 await createJob(payload)
             }
-            navigate('/jobs')
+            navigate('/client/jobs')
         } catch (err) {
             setError(err.response?.data?.error?.message || err.message || 'Failed to save job.')
         } finally {

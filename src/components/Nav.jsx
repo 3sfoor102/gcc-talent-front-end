@@ -1,11 +1,16 @@
 import { Link } from "react-router"
 import logo from "../assets/logo.png"
 
-const Nav = function (props) {
-    const handleSignOut = function () {
+const Nav = function (props)
+{
+    const handleSignOut = function ()
+    {
         localStorage.removeItem('token')
         props.setUser(null)
     }
+
+    const isClient = props.user?.role === 'client';
+    const isFreelancer = props.user?.role === 'freelancer';
 
     return (
         <nav className="bg-brand-teal text-white px-6 py-4 flex justify-between items-center shadow-md border-b border-cream-200/20">
@@ -20,19 +25,28 @@ const Nav = function (props) {
                             All Jobs
                         </Link>
                     </li>
-                    {props.user && (
+
+                    {isClient && (
                         <>
                             <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/jobs/my-jobs">
-                                    My Posted Jobs
+                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/client/jobs">
+                                    My Jobs
                                 </Link>
                             </li>
                             <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/jobs/new">
+                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/client/jobs/new">
                                     Post a Job
                                 </Link>
                             </li>
                         </>
+                    )}
+
+                    {isFreelancer && (
+                        <li>
+                            <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/freelancer/proposals">
+                                My Proposals
+                            </Link>
+                        </li>
                     )}
                 </ul>
             </div>
