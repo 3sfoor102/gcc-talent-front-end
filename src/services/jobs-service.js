@@ -54,6 +54,17 @@ const reopenJob = async (jobId) => {
     return response.data.data;
 };
 
+const getCategories = async () => {
+    const response = await axiosInstance.get('/jobs/categories');
+    return response.data.data;
+};
+
+const getSkills = async (categoryId = '') => {
+    const url = categoryId ? `/jobs/skills?category=${categoryId}` : '/jobs/skills';
+    const response = await axiosInstance.get(url);
+    return response.data.data;
+};
+
 export {
     indexJob,
     showJob,
@@ -63,4 +74,6 @@ export {
     deleteJob,
     closeJob,
     reopenJob,
+    getCategories,
+    getSkills,
 }
