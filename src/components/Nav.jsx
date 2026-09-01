@@ -5,7 +5,7 @@ const Nav = function (props)
     const handleSignOut = function ()  
     {
         localStorage.removeItem('token')
-        props.setUser(null)
+        props.setUser()
     }
 
     return (
@@ -22,6 +22,9 @@ const Nav = function (props)
                         </li>
                         <li>
                             <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/">Dashboard</Link>
+                        </li>
+                        <li>
+                            <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/settings">Settings</Link>
                         </li>
                         <li>
                             <button onClick={handleSignOut} className="text-sm font-medium text-red-300 hover:text-red-100 bg-transparent border-0 cursor-pointer">
