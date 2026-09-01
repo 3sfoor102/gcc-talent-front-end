@@ -14,8 +14,13 @@ const updateProposal = async (proposalId, proposalData) => {
     return res.data.data
 }
 
+const withdrawProposal = async (proposalId) => {
+  const res = await axiosInstance.post(`/proposals/${proposalId}/withdraw`)
+  return res.data.data
+}
 export {
     getMyProposals,
     createProposal,
-    updateProposal
+    updateProposal,
+    withdrawProposal
 }
