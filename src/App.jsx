@@ -18,6 +18,7 @@ import Dashboard from "./pages/Dashboard"
 
 
 
+import Settings from './components/Settings'
 
 const getUserFromToken = () => {
   const token = localStorage.getItem('token')
@@ -61,6 +62,7 @@ const App = () => {
 
 
 
+        <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
       </Routes>
       </main>
     </div>
