@@ -9,12 +9,46 @@ const Nav = function (props)
         props.setUser(null)
     }
 
+    const isClient = props.user?.role === 'client';
+    const isFreelancer = props.user?.role === 'freelancer';
+
     return (
         <nav className="bg-brand-teal text-white px-6 py-4 flex justify-between items-center shadow-md border-b border-cream-200/20">
-            <div>
-                <Link className="no-underline flex items-center" to="/">
-                    <img src={logo} alt="GCC Talent" className="h-18 w-auto object-contain scale-220 origin-left" />
+            <div className="flex items-center gap-10">
+                <Link className="no-underline flex items-center shrink-0" to="/">
+                    <img src={logo} alt="GCC Talent" className="h-16 w-auto object-contain" />
                 </Link>
+
+                <ul className="flex items-center gap-6 m-0 p-0 list-none">
+                    <li>
+                        <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/jobs">
+                            All Jobs
+                        </Link>
+                    </li>
+
+                    {isClient && (
+                        <>
+                            <li>
+                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/client/jobs">
+                                    My Jobs
+                                </Link>
+                            </li>
+                            <li>
+                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/client/jobs/new">
+                                    Post a Job
+                                </Link>
+                            </li>
+                        </>
+                    )}
+
+                    {isFreelancer && (
+                        <li>
+                            <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/freelancer/proposals">
+                                My Proposals
+                            </Link>
+                        </li>
+                    )}
+                </ul>
             </div>
 
             <div>

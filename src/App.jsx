@@ -1,18 +1,30 @@
-import Nav from "./components/Nav"
-import SignUpForm from "./pages/SignUpForm"
-import './App.css'
 import { Routes, Route } from "react-router"
 import { useState, useEffect } from "react"
+import Nav from "./components/Nav"
+import SignUpForm from "./pages/SignUpForm"
 import SignInForm from "./pages/SignInForm"
 import Landing from "./pages/Landing"
 import Dashboard from "./pages/Dashboard"
+import './App.css'
+
+// Ali Saleh's imports 
 import Settings from './components/Settings'
 import Profile from './components/Profile'
 import EditProfile from './components/EditProfile'
 
+// Ali Alasfoor's imports 
+
+// Hasan Ali's imports 
+import JobsPage from "./pages/Jobs"
+import JobDetailsPage from "./pages/JobDetailsPage"
+import ClientJobsPage from "./pages/ClientJobsPage"
+import JobFormPage from "./pages/JobFormPage"
+import JobProposalsPage from "./pages/JobProposalsPage"
+import MyProposalsPage from "./pages/MyProposalsPage"
+// End of Hasan's
+
 const getUserFromToken = () => {
   const token = localStorage.getItem('token')
-
   if (!token) return null
 
   try {
@@ -24,6 +36,14 @@ const getUserFromToken = () => {
 }
 
 const App = () => {
+  // Ali Saleh's CONSTS 
+
+  // Ali Alasfoor's CONSTS 
+
+  // Hasan Ali's CONSTS 
+
+  
+  // End of Hasan's 
 
   const [user, setUser] = useState(getUserFromToken())
 
@@ -63,14 +83,38 @@ const App = () => {
     <div>
       <Nav user={user} setUser={setUser} />
       <main className="app-main">
-      <Routes>
-        <Route path='/' element={user ? <Dashboard user={user} /> : <Landing />} />
-        <Route path='/sign-up' element={<SignUpForm setUser={setUser} />} />
-        <Route path='/sign-in' element={<SignInForm setUser={setUser} />} />
-        <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
-        <Route path="/profile" element={user ? <Profile user={user} /> : <Landing />} />
-        <Route path="/profile/edit" element={user ? <EditProfile user={user} /> : <Landing />} />
-      </Routes>
+        <Routes>
+          {/* Auth & Admin & Dashboard Routes & Settings */}
+          <Route path="/" element={user ? <Dashboard user={user} /> : <Landing />} />
+          <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
+          <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
+          <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
+
+          {/* Profile Routes */}
+          <Route path="/profile" element={user ? <Profile user={user} /> : <Landing />} />
+          <Route path="/profile/edit" element={user ? <EditProfile user={user} /> : <Landing />} />
+
+          {/* Contract Routes */}
+
+          {/* Wallet Routes */}
+
+          {/* Jobs Routes */}
+          {/* Jobs Public Browsing */}
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:jobId" element={<JobDetailsPage user={user} />} />
+
+          {/* Client Job & Proposal Management (Spec Section 11) */}
+          <Route path="/client/jobs" element={<ClientJobsPage user={user} />} />
+          <Route path="/client/jobs/new" element={<JobFormPage />} />
+          <Route path="/client/jobs/:jobId/edit" element={<JobFormPage />} />
+          <Route path="/client/jobs/:jobId/proposals" element={<JobProposalsPage user={user} />} />
+
+          {/* Proposal Routes */}
+          {/* Freelancer Proposals Management (Spec Section 11) */}
+          <Route path="/freelancer/proposals" element={<MyProposalsPage user={user} />} />
+
+          {/* Messages Routes */}
+        </Routes>
       </main>
     </div>
   )
