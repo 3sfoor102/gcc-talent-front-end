@@ -33,6 +33,11 @@ const WalletPage = () => {
         event.preventDefault()
         handleDeposit({amount: Number(amount), card})
     }
+
+    if (isLoading) return <div className="p-6 text-on-surface">Loading secure wallet...</div>;
+    if (isError) return <div className="p-6 text-error">Error: {fetchError.message}</div>;
+    const wallet = walletData?.data?.wallet
+    
     return (
         <div className="p-6 bg-[#F7F0E9] min-h-screen">
             <h2 className="text-2xl font-bold text-[#224548]">My Financial Dashboard</h2>
