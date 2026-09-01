@@ -1,20 +1,40 @@
 import { Link } from "react-router"
 import logo from "../assets/logo.png"
 
-const Nav = function (props)
-{
-    const handleSignOut = function ()
-    {
+const Nav = function (props) {
+    const handleSignOut = function () {
         localStorage.removeItem('token')
         props.setUser(null)
     }
 
     return (
         <nav className="bg-brand-teal text-white px-6 py-4 flex justify-between items-center shadow-md border-b border-cream-200/20">
-            <div>
-                <Link className="no-underline flex items-center" to="/">
-                    <img src={logo} alt="GCC Talent" className="h-18 w-auto object-contain scale-220 origin-left" />
+            <div className="flex items-center gap-10">
+                <Link className="no-underline flex items-center shrink-0" to="/">
+                    <img src={logo} alt="GCC Talent" className="h-16 w-auto object-contain" />
                 </Link>
+
+                <ul className="flex items-center gap-6 m-0 p-0 list-none">
+                    <li>
+                        <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/jobs">
+                            All Jobs
+                        </Link>
+                    </li>
+                    {props.user && (
+                        <>
+                            <li>
+                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/jobs/my-jobs">
+                                    My Posted Jobs
+                                </Link>
+                            </li>
+                            <li>
+                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/jobs/new">
+                                    Post a Job
+                                </Link>
+                            </li>
+                        </>
+                    )}
+                </ul>
             </div>
 
             <div>
