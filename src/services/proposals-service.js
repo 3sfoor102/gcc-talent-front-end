@@ -18,9 +18,15 @@ const withdrawProposal = async (proposalId) => {
   const res = await axiosInstance.post(`/proposals/${proposalId}/withdraw`)
   return res.data.data
 }
+
+const getJobProposals = async (jobId, page = 1, limit = 12) => {
+  const res = await axiosInstance.get(`/jobs/${jobId}/proposals?page=${page}&limit=${limit}`)
+  return res.data
+}
 export {
     getMyProposals,
     createProposal,
     updateProposal,
-    withdrawProposal
+    withdrawProposal,
+    getJobProposals
 }
