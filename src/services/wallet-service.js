@@ -40,7 +40,7 @@ const withdrawFundsApi = async ({amount}) =>{
     })
     if (!res.ok) {
         const errorData = await res.json()
-        throw new Error(errorData.error?.message || '402 declined card')
+        throw new Error(errorData.error?.message || 'Insufficient funds or withdrawal failed')
     }
     return res.json()
 }

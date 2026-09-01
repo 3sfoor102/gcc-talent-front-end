@@ -6,6 +6,7 @@ import { useState } from 'react';
 const [amount, setAmount] = useState('')
 const [card, setCard] = useState('4242424242424242')
 
+
 const WalletPage = () => {
     const queryClient = new QueryClient()
 
@@ -21,7 +22,14 @@ const WalletPage = () => {
             setAmount('')
         }
     })
-    const onSubmit = (event) => {
+    const {mutate:handleWithdraw, isPending: isWithdrawing} = useMutation({
+        mutationFn: depositFundsApi,
+        onSuccess: ()=>{
+            queryClient.invalidateQueries({queryKey: ['wallet']})
+        }
+    })
+
+    const onDepositSubmit = (event) => {
         event.preventDefault()
         handleDeposit({amount: Number(amount), card})
     }
@@ -40,7 +48,6 @@ const WalletPage = () => {
             </button>
         </div>    
         )
-
 
     
 }
