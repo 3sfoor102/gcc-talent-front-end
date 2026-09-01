@@ -1,35 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-teal: #224548;
-  --color-brand-cream: #F7F0E9;
-  --color-teal-900: #1A3638;
-  --color-teal-600: #2E5A5E;
-  --color-accent-sand: #C9A77C;
-  --color-cream-200: #EFE4D8;
-  --color-ink: #1F2A2B;
-}
-
-body {
-  background-color: var(--color-brand-cream);
-  color: var(--color-ink);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid #eaf6f7;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
-}
-
-.radio-custom {
-  accent-color: var(--color-gcc-teal);
-}
-
-@import "tailwindcss";
-
-@theme {
-  /* Font Family & Weights: Poppins (600 headings, 500 labels, 400 body) */
+  /* Brand Typography: Poppins (600 headings, 500 labels, 400 body) */
   --font-sans: "Poppins", sans-serif;
   --font-poppins: "Poppins", sans-serif;
 

@@ -3,7 +3,6 @@ import { indexJob } from "../services/jobs-service";
 import { Link } from "react-router";
 
 const JobsPage = () => {
-
     const initialFilters = {
         q: "",
         budgetType: "",
@@ -16,7 +15,7 @@ const JobsPage = () => {
         page: 1,
         limit: 10,
         total: 0,
-        totalPages: 1
+        totalPages: 1,
     }
 
     const [jobs, setJobs] = useState([])
@@ -26,13 +25,13 @@ const JobsPage = () => {
     const [error, setError] = useState(null)
     const [formFilters, setFormFilters] = useState(initialFilters)
     const [appliedFilters, setAppliedFilters] = useState(initialFilters)
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
 
     useEffect(() => {
         const fetchJobs = async () => {
             setLoading(true)
             setError(null)
             try {
-
                 const cleanFilters = Object.entries(appliedFilters).reduce(
                     (acc, [key, value]) => {
                         if (value !== "" && value !== undefined && value !== null) {
@@ -40,13 +39,13 @@ const JobsPage = () => {
                         }
                         return acc
                     },
-                    {},
+                    {}
                 )
 
                 const response = await indexJob({
                     page: currentPage,
                     limit: 10,
-                    ...cleanFilters
+                    ...cleanFilters,
                 })
                 setJobs(response.data)
                 setMeta(response.meta)
@@ -61,145 +60,272 @@ const JobsPage = () => {
 
     const totalPages = Math.max(1, Math.ceil((meta.total || 0) / (meta.limit || 10)))
 
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage((prev) => prev - 1)
-        }
-    }
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage((prev) => prev + 1)
-        }
-    }
-
     const handleInputChange = (event) => {
-        const { name, value } = event.target;
+        const { name, value } = event.target
         setFormFilters((prev) => ({ ...prev, [name]: value }))
     }
 
     const handleSearch = (event) => {
-        event.preventDefault();
-        setCurrentPage(1);
-        setAppliedFilters(formFilters);
+        event.preventDefault()
+        setCurrentPage(1)
+        setAppliedFilters(formFilters)
+        setIsMobileFilterOpen(false)
     }
+
     const handleReset = () => {
-        setFormFilters(initialFilters);
-        setAppliedFilters(initialFilters);
-        setCurrentPage(1);
+        setFormFilters(initialFilters)
+        setAppliedFilters(initialFilters)
+        setCurrentPage(1)
+        setIsMobileFilterOpen(false)
     }
 
-    return (
-        <div>
+    const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length
 
-            <h1>Available Jobs</h1>
+    const filterFormContent = (
+        <form onSubmit={handleSearch} className="flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-cream-200">
+                <span className="text-[16px] font-semibold text-ink">Filters</span>
+                <button
+                    type="button"
+                    onClick={handleReset}
+                    className="text-[12px] font-medium text-teal-600 hover:text-ink transition-colors"
+                >
+                    Reset All
+                </button>
+            </div>
 
-            <form onSubmit={handleSearch}>
-                <div>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-medium text-ink">Keywords</label>
+                <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 text-[18px]">
+                        search
+                    </span>
                     <input
                         type="text"
                         name="q"
-                        placeholder="Search keywords..."
+                        placeholder="e.g. React, UX Design..."
                         value={formFilters.q}
                         onChange={handleInputChange}
+                        className="w-full pl-9 pr-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
                     />
-                    <button type="submit">Search</button>
-                    <button type="button" onClick={handleReset}>
-                        Reset
-                    </button>
                 </div>
+            </div>
 
-                <div>
-                    <select
-                        name="budgetType"
-                        value={formFilters.budgetType}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">All Budget Types</option>
-                        <option value="fixed">Fixed</option>
-                        <option value="hourly">Hourly</option>
-                    </select>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-medium text-ink">Budget Type</label>
+                <select
+                    name="budgetType"
+                    value={formFilters.budgetType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
+                >
+                    <option value="">All Budget Types</option>
+                    <option value="fixed">Fixed Price</option>
+                    <option value="hourly">Hourly Rate</option>
+                </select>
+            </div>
 
-                    <select
-                        name="experienceLevel"
-                        value={formFilters.experienceLevel}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">All Experience Levels</option>
-                        <option value="entry">Entry</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="expert">Expert</option>
-                    </select>
+            <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-medium text-ink">Experience Level</label>
+                <select
+                    name="experienceLevel"
+                    value={formFilters.experienceLevel}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
+                >
+                    <option value="">All Experience Levels</option>
+                    <option value="entry">Entry Level</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
 
+            <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-medium text-ink">Budget Range ($)</label>
+                <div className="grid grid-cols-2 gap-2">
                     <input
                         type="number"
                         name="minBudget"
-                        placeholder="Min Budget"
+                        placeholder="Min"
                         value={formFilters.minBudget}
                         onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
                     />
-
                     <input
                         type="number"
                         name="maxBudget"
-                        placeholder="Max Budget"
+                        placeholder="Max"
                         value={formFilters.maxBudget}
                         onChange={handleInputChange}
+                        className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
                     />
                 </div>
-            </form>
-            <hr />
+            </div>
 
+            <button
+                type="submit"
+                className="w-full py-2.5 mt-2 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium hover:opacity-90 transition-opacity"
+            >
+                Apply Filters
+            </button>
+        </form>
+    )
 
-            {loading && <p>Loading jobs...</p>}
-            {error && <p>{error}</p>}
-            {!loading && !error && jobs.length === 0 && <p>No jobs found.</p>}
-            {!loading && !error && jobs.length > 0 && (
-                <>
-                    <div>
-                        {jobs.map((job) => (
-                            <div key={job._id}>
-                                <h3>
-                                    <Link to={`/jobs/${job._id}`}>{job.title}</Link>
-                                </h3>
-                                <p>{job.description}</p>
-                                <ul>
-                                    <li>
-                                        <strong>Budget:</strong> ${job.budgetMin || 0} - ${job.budgetMax || 0}
-                                    </li>
-                                    <li>
-                                        <strong>Type:</strong> {job.budgetType}
-                                    </li>
-                                    <li>
-                                        <strong>Level:</strong> {job.experienceLevel}
-                                    </li>
-                                </ul>
-                                <hr />
-                            </div>
-                        ))}
-                    </div>
+    return (
+        <div className="w-full max-w-[1280px] mx-auto px-6 py-8 flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-[28px] sm:text-[32px] font-semibold text-ink leading-tight">
+                        Explore Opportunities
+                    </h1>
+                    <p className="text-[14px] text-teal-600 mt-1">
+                        Browse verified contracts and high-value projects across the GCC.
+                    </p>
+                </div>
 
-                    <div>
-                        <button
-                            onClick={handlePrevPage}
-                            disabled={currentPage <= 1 || loading}
-                        >
-                            Previous
-                        </button>
-                        <span>
-                            {" "}Page {currentPage} of {totalPages}{" "}
+                <button
+                    type="button"
+                    onClick={() => setIsMobileFilterOpen(true)}
+                    className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-cream-200 rounded-[8px] text-[14px] font-medium text-ink shadow-xs self-start"
+                >
+                    <span className="material-symbols-outlined text-[18px] text-teal-600">tune</span>
+                    Filter Jobs
+                    {activeFilterCount > 0 && (
+                        <span className="w-5 h-5 rounded-full bg-brand-teal text-white text-[11px] flex items-center justify-center font-semibold">
+                            {activeFilterCount}
                         </span>
-                        <button
-                            onClick={handleNextPage}
-                            disabled={currentPage >= totalPages || loading}
-                        >
-                            Next
-                        </button>
+                    )}
+                </button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-8 items-start relative">
+                <aside className="hidden lg:block lg:w-4/12 xl:w-3/12 lg:sticky lg:top-4 lg:self-start bg-white border border-cream-200 rounded-[8px] p-5 shadow-sm">
+                    {filterFormContent}
+                </aside>
+
+                {isMobileFilterOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 lg:hidden">
+                        <div className="bg-white border border-cream-200 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[12px] p-6 shadow-xl flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[18px] font-semibold text-ink">Filter Jobs</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileFilterOpen(false)}
+                                    className="text-teal-600 hover:text-ink text-[20px]"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            {filterFormContent}
+                        </div>
                     </div>
-                </>
-            )}
+                )}
+
+                <main className="w-full lg:w-8/12 xl:w-9/12 flex flex-col gap-4">
+                    {error && (
+                        <div className="p-4 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[14px]">
+                            {error}
+                        </div>
+                    )}
+
+                    {loading && (
+                        <div className="min-h-[40vh] flex items-center justify-center">
+                            <p className="text-[16px] text-teal-600 animate-pulse font-medium">Searching for available jobs...</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && jobs.length === 0 && (
+                        <div className="p-12 text-center bg-white border border-cream-200 rounded-[8px] shadow-sm flex flex-col items-center gap-2">
+                            <span className="material-symbols-outlined text-[42px] text-teal-600/40">search_off</span>
+                            <p className="text-[16px] font-medium text-ink">No jobs match your criteria.</p>
+                            <p className="text-[14px] text-teal-600">Try adjusting your filters or resetting them to view all jobs.</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && jobs.length > 0 && (
+                        <div className="flex flex-col gap-4">
+                            {jobs.map((job) => (
+                                <article
+                                    key={job._id}
+                                    className="p-5 sm:p-6 bg-white border border-cream-200 rounded-[8px] shadow-sm hover:border-teal-600/40 transition-colors flex flex-col gap-4"
+                                >
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                        <div>
+                                            <h2 className="text-[19px] sm:text-[20px] font-semibold text-ink hover:text-teal-600 transition-colors">
+                                                <Link to={`/jobs/${job._id}`}>{job.title}</Link>
+                                            </h2>
+                                            <div className="flex flex-wrap items-center gap-4 text-teal-600 text-[13px] mt-1 font-medium">
+                                                {job.createdAt && (
+                                                    <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+                                                )}
+                                                <span>{job.client?.country || "Remote"}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col sm:items-end">
+                                            <span className="text-[18px] font-semibold text-teal-900">
+                                                ${job.budgetMin || 0} - ${job.budgetMax || 0}
+                                            </span>
+                                            <span className="text-[12px] text-teal-600 capitalize">
+                                                {job.budgetType || "Fixed"}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-[15px] leading-relaxed text-ink line-clamp-2 font-normal">
+                                        {job.description}
+                                    </p>
+
+                                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-cream-200">
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="px-2.5 py-1 bg-brand-cream border border-cream-200 rounded-full text-[12px] font-medium text-teal-600">
+                                                Level: {job.experienceLevel || "Not specified"}
+                                            </span>
+                                            {job.category?.name && (
+                                                <span className="px-2.5 py-1 bg-brand-cream border border-cream-200 rounded-full text-[12px] font-medium text-teal-600">
+                                                    {job.category.name}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <Link
+                                            to={`/jobs/${job._id}`}
+                                            className="text-[14px] font-medium text-accent-sand hover:text-accent-sand-hover flex items-center gap-1 transition-colors"
+                                        >
+                                            View Details
+                                            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                        </Link>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+
+                    {!loading && !error && totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-3 pt-4">
+                            <button
+                                onClick={() => setCurrentPage((prev) => prev - 1)}
+                                disabled={currentPage <= 1 || loading}
+                                className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs"
+                            >
+                                Previous
+                            </button>
+                            <span className="text-[13px] font-medium text-teal-600">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage((prev) => prev + 1)}
+                                disabled={currentPage >= totalPages || loading}
+                                className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
+                </main>
+            </div>
         </div>
     )
-};
+}
 
-export default JobsPage;
+export default JobsPage
