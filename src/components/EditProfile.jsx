@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react"
-
 import { useNavigate } from "react-router"
-
 import { getFreelancerProfile, createFreelancerProfile, updateFreelancerProfile } from "../services/profile"
 
 const EditProfile = function (props) 

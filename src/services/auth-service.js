@@ -73,9 +73,35 @@ const getUser = function ()
     return user ? JSON.parse(user) : null
 }
 
+
+
+const forgotPassword = async function (email) {
+    const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+    })
+    const data = await res.json()
+    if (!data.success) throw new Error(data.error?.message || data.message)
+    return data.message
+}
+
+const resetPassword = async function (token, newPassword) {
+    const res = await fetch(`${BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword })
+    })
+    const data = await res.json()
+    if (!data.success) throw new Error(data.error?.message || data.message)
+    return data.message
+}
+
 export {
     signUp,
     signIn,
     signOut,
     getUser,
+    forgotPassword,
+    resetPassword,
 }

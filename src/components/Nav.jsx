@@ -53,9 +53,21 @@ const Nav = function (props)
 
             <div>
                 {props.user ? (
-                    <ul className="flex items-center gap-5 m-0 list-none">
-                        <li className="text-sm text-cream-200">
-                            Welcome, {props.user.username || props.user.name || 'User'}
+                    <ul className="flex items-center gap-6 m-0 list-none">
+                        
+                        <li className="flex items-center">
+                            <Link to="/profile" className="flex items-center gap-3 no-underline group cursor-pointer">
+                                <div className="h-10 w-10 rounded-full border-2 border-cream-200/50 bg-cream-200 flex items-center justify-center text-brand-teal text-lg font-bold shadow-sm overflow-hidden group-hover:border-white transition-colors shrink-0">
+                                    {props.user.avatarUrl ? (
+                                        <img src={props.user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span>{props.user.name ? props.user.name.charAt(0).toUpperCase() : 'U'}</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-cream-200 group-hover:text-white transition-colors hidden md:block">
+                                    {props.user.name || 'User'}
+                                </span>
+                            </Link>
                         </li>
                         
                         <li className="flex items-center">
@@ -71,12 +83,9 @@ const Nav = function (props)
                         </li>
                         
                         <li>
-                            <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/profile">Profile</Link>
-                        </li>
-                        
-                        <li>
                             <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/settings">Settings</Link>
                         </li>
+
                         <li>
                             <button onClick={handleSignOut} className="text-sm font-medium text-red-300 hover:text-red-100 bg-transparent border-0 cursor-pointer">
                                 Sign Out

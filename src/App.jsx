@@ -11,6 +11,7 @@ import './App.css'
 import Settings from './components/Settings'
 import Profile from './components/Profile'
 import EditProfile from './components/EditProfile'
+<<<<<<< HEAD
 
 // Ali Alasfoor's imports 
 
@@ -46,44 +47,72 @@ const App = () => {
   // End of Hasan's 
 
   const [user, setUser] = useState(getUserFromToken())
+=======
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+
+const App = () => {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+>>>>>>> 6e634a8445f3003232c541bc02e6d97a3a3e22d1
 
   useEffect(() => {
-    const verifySession = async function () 
-    {
-        const token = localStorage.getItem('token')
-        
-        if (token) {
-            try {
-                const res = await fetch(`${import.meta.env.VITE_BACK_END_SERVER_URL}/auth/verify`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                
-                const responseData = await res.json()
-                
-                if (res.ok) {
-                    const validUser = responseData.data?.user || responseData.user || responseData
-                    if (validUser) {
-                        setUser(validUser)
-                    }
-                } else {
-                    localStorage.removeItem('token')
-                    setUser(null)
-                }
-            } catch (err) {
-                console.error("Session verification failed:", err)
+    const verifySession = async function () {
+      const token = localStorage.getItem('token')
+
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        const res = await fetch(`${import.meta.env.VITE_BACK_END_SERVER_URL}/auth/verify`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        const responseData = await res.json()
+
+        if (res.ok) {
+          const rawUser = responseData.data?.user || responseData.user || responseData
+          if (rawUser) {
+            const formattedUser = {
+              ...rawUser,
+              id: rawUser.id || rawUser._id,
+              role: rawUser.role || 'freelancer'
             }
+            setUser(formattedUser)
+          }
+        } else {
+          localStorage.removeItem('token')
+          setUser(null)
         }
+      } catch (err) {
+        console.error("Session verification failed:", err)
+        localStorage.removeItem('token')
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
     verifySession()
   }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-brand-cream">
+        <p className="text-brand-teal font-semibold text-lg animate-pulse">Loading session...</p>
+      </div>
+    )
+  }
 
   return (
     <div>
       <Nav user={user} setUser={setUser} />
       <main className="app-main">
         <Routes>
+<<<<<<< HEAD
           {/* Auth & Admin & Dashboard Routes & Settings */}
           <Route path="/" element={user ? <Dashboard user={user} /> : <Landing />} />
           <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
@@ -114,6 +143,16 @@ const App = () => {
           <Route path="/freelancer/proposals" element={<MyProposalsPage user={user} />} />
 
           {/* Messages Routes */}
+=======
+          <Route path='/' element={user ? <Dashboard user={user} /> : <Landing />} />
+          <Route path='/sign-up' element={<SignUpForm setUser={setUser} />} />
+          <Route path='/sign-in' element={<SignInForm setUser={setUser} />} />
+          <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
+          <Route path="/profile" element={user ? <Profile user={user} /> : <Landing />} />
+          <Route path="/profile/edit" element={user ? <EditProfile user={user} /> : <Landing />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+>>>>>>> 6e634a8445f3003232c541bc02e6d97a3a3e22d1
         </Routes>
       </main>
     </div>
@@ -121,3 +160,4 @@ const App = () => {
 }
 
 export default App
+
