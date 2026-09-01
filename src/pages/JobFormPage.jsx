@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { createJob, updateJob, showJob, getCategories, getSkills } from '../services/jobs-service'
+import { uploadToCloudinary } from '../services/upload-service'
 
 const JobFormPage = () => {
     const { jobId } = useParams()
@@ -17,6 +18,7 @@ const JobFormPage = () => {
         experienceLevel: 'intermediate',
         duration: '',
         deadline: '',
+        attachments: [],
         status: 'open'
     }
 
@@ -26,6 +28,7 @@ const JobFormPage = () => {
     const [loading, setLoading] = useState(false)
     const [optionsLoading, setOptionsLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [uploadingFile, setUploadingFile] = useState(false)
 
     const isEditMode = jobId ? true : false
 
@@ -42,7 +45,7 @@ const JobFormPage = () => {
                 setCategories(categoriesData)
                 setAvailableSkills(skillsData)
             } catch (err) {
-                setError(err.response?.data?.error?.message || err.message || 'Failed to load categories/skills.')
+                setError(err.response?.data?.error?.message || err.message || 'Failed to load options.')
             } finally {
                 setOptionsLoading(false)
             }
@@ -73,6 +76,7 @@ const JobFormPage = () => {
                         experienceLevel: job.experienceLevel || 'intermediate',
                         duration: job.duration || '',
                         deadline: job.deadline ? job.deadline.split('T')[0] : '',
+                        attachments: job.attachments || [],
                         status: job.status || 'open'
                     })
                 } catch (err) {
@@ -96,11 +100,36 @@ const JobFormPage = () => {
             const isSelected = prev.skills.includes(skillName)
             return {
                 ...prev,
-                skills: isSelected
-                    ? prev.skills.filter((name) => name !== skillName)
-                    : [...prev.skills, skillName]
+                skills: isSelected ? prev.skills.filter((name) => name !== skillName) : [...prev.skills, skillName]
             }
         })
+    }
+
+    const handleFileUpload = async (event) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+
+        setUploadingFile(true)
+        setError(null)
+        try {
+            const uploadedAttachment = await uploadToCloudinary(file)
+            setFormData((prev) => ({
+                ...prev,
+                attachments: [...prev.attachments, uploadedAttachment]
+            }))
+        } catch (err) {
+            setError(err.response?.data?.error?.message || err.message || 'Failed to upload attachment.')
+        } finally {
+            setUploadingFile(false)
+            event.target.value = ''
+        }
+    }
+
+    const handleRemoveAttachment = (publicId) => {
+        setFormData((prev) => ({
+            ...prev,
+            attachments: prev.attachments.filter((att) => att.public_id !== publicId)
+        }))
     }
 
     const handleSubmit = async (event) => {
@@ -186,9 +215,9 @@ const JobFormPage = () => {
 
                     <div>
                         {availableSkills.map((skill) => {
-                            const isChecked = formData.skills.includes(skill.name)
+                            const isChecked = formData.skills.includes(skill.name);
                             return (
-                                <label key={skill._id}>
+                                <label key={skill._id}                                >
                                     <input
                                         type="checkbox"
                                         checked={isChecked}
@@ -196,7 +225,7 @@ const JobFormPage = () => {
                                     />
                                     {skill.name}
                                 </label>
-                            )
+                            );
                         })}
                     </div>
                 </fieldset>
@@ -272,6 +301,40 @@ const JobFormPage = () => {
                     />
                 </div>
 
+                {/* Attachments Upload Section */}
+                <div>
+                    <label htmlFor="file-upload">Attachment: </label>
+                    <input
+                        id="file-upload"
+                        type="file"
+                        onChange={handleFileUpload}
+                        disabled={uploadingFile}
+                    />
+                    {uploadingFile && <span> Uploading file to Cloudinary...</span>}
+
+                    {formData.attachments.length > 0 && (
+                        <ul>
+                            {formData.attachments.map((file) => (
+                                <li key={file.public_id}>
+                                    <a href={file.url} target="_blank" rel="noreferrer">
+                                        {file.name || 'File'}
+                                    </a>
+                                    {file.size && <span> ({Math.round(file.size / 1024)} KB)</span>}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveAttachment(file.public_id)}
+                                        style={{ marginLeft: '0.5rem' }}
+                                    >
+                                        Remove
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                <br />
+
                 <div>
                     <label htmlFor="status">Status: </label>
                     <select
@@ -287,7 +350,7 @@ const JobFormPage = () => {
 
                 <br />
 
-                <button type="submit" disabled={loading || optionsLoading}>
+                <button type="submit" disabled={loading || uploadingFile || optionsLoading}>
                     {loading ? 'Saving...' : isEditMode ? 'Update Job' : 'Create Job'}
                 </button>
             </form>
