@@ -1,29 +1,9 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import { index } from "../services/user-service";
-
-const Dashboard = (props) => {
-  const [allUsers, setAllUsers] = useState([]);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      // const usersData = await index();
-      // setAllUsers(usersData);
-    };
-    fetchUsers();
-  }, []);
-
-  return <section></section>;
-};
-
-export default Dashboard;
-=======
 import { Link } from "react-router"
 
 const Dashboard = (props) => {
     const firstName = props.user?.name ? props.user.name.split(' ')[0] : 'User'
     const role = props.user?.role || 'freelancer'
-    
+
     const isClient = role === 'client'
     const isAdmin = role === 'admin'
 
@@ -31,14 +11,14 @@ const Dashboard = (props) => {
         return (
             <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6">
                 <div className="max-w-6xl mx-auto">
-                    
+
                     <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
                             <h1 className="text-3xl font-bold text-ink m-0">Welcome Admin, {firstName}! 👑</h1>
                             <p className="text-teal-600 m-0 mt-2 text-lg">Platform Management & Overview.</p>
                         </div>
-                        <Link 
-                            to="/settings" 
+                        <Link
+                            to="/settings"
                             className="px-6 py-3 bg-brand-teal text-white font-semibold rounded-lg no-underline hover:bg-teal-900 transition-colors shadow-sm inline-block text-center"
                         >
                             System Settings
@@ -95,14 +75,14 @@ const Dashboard = (props) => {
     return (
         <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
-                
+
                 <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h1 className="text-3xl font-bold text-ink m-0">Welcome back, {firstName}! 👋</h1>
                         <p className="text-teal-600 m-0 mt-2 text-lg">Here is an overview of your <span className="capitalize font-semibold">{role}</span> workspace.</p>
                     </div>
-                    <Link 
-                        to={isClient ? "/jobs/new" : "/jobs"} 
+                    <Link
+                        to={isClient ? "/jobs/new" : "/jobs"}
                         className="px-6 py-3 bg-brand-teal text-white font-semibold rounded-lg no-underline hover:bg-teal-900 transition-colors shadow-sm inline-block text-center"
                     >
                         {isClient ? "Post a New Job" : "Browse Jobs"}
@@ -132,12 +112,12 @@ const Dashboard = (props) => {
                     </div>
                     <h2 className="text-xl font-bold text-ink mb-2">No Recent Activity</h2>
                     <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                        {isClient 
+                        {isClient
                             ? "You haven't posted any jobs or started any contracts yet. Post a job to find the perfect talent."
                             : "You haven't applied to any jobs or started any contracts yet. Browse open jobs to send your first proposal."}
                     </p>
-                    <Link 
-                        to={isClient ? "/jobs/new" : "/jobs"} 
+                    <Link
+                        to={isClient ? "/jobs/new" : "/jobs"}
                         className="px-6 py-2.5 bg-accent-sand text-brand-teal font-bold rounded-lg no-underline hover:bg-[#B8956B] transition-colors inline-block"
                     >
                         {isClient ? "Post a Job Now" : "Find Jobs Now"}
@@ -150,4 +130,3 @@ const Dashboard = (props) => {
 }
 
 export default Dashboard
->>>>>>> 6e634a8445f3003232c541bc02e6d97a3a3e22d1

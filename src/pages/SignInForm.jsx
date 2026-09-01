@@ -1,11 +1,6 @@
 import { useState } from "react"
-<<<<<<< HEAD
-import { useNavigate } from "react-router"
-import { signIn } from "../services/auth-service"
-=======
 import { useNavigate, Link } from "react-router"
 import { signIn } from "../services/auth"
->>>>>>> 6e634a8445f3003232c541bc02e6d97a3a3e22d1
 
 const SignInForm = function (props) {
     const navigate = useNavigate()
