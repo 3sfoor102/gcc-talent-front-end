@@ -11,6 +11,9 @@ import Dashboard from "./pages/Dashboard"
 
 
 // Ali Alasfoor's imports 
+import { WalletPage } from "./pages/WalletPage"
+
+
 
 
 // Hasan Ali's imports 
