@@ -16,10 +16,13 @@ const WalletPage = () => {
         mutationFn: depositFundsApi,
         onSuccess: ()=>{
             queryClient.invalidateQueries({queryKey: ['wallet']})
-            setAmount()
+            setAmount('')
         }
     })
-
+    const onSubmit = (event) => {
+        event.preventDefault()
+        handleDeposit({amount: Number(amount), card})
+    }
     return (
         <div className="p-6 bg-[#F7F0E9] min-h-screen">
             <h2 className="text-2xl font-bold text-[#224548]">My Financial Dashboard</h2>
@@ -31,7 +34,7 @@ const WalletPage = () => {
                 disabled={isPending}
                 className="mt-4 bg-[#224548] text-white px-4 py-2 rounded"
             >
-                {isPending ? 'Processing Escrow...':'Test 100$ Deposit'}
+                {isPending ? 'Processing Escrow...':'Deposit Funds'}
             </button>
         </div>    
         )
