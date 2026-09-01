@@ -28,6 +28,10 @@ const acceptProposal = async (proposalId) => {
   const res = await axiosInstance.post(`/proposals/${proposalId}/accept`)
   return res.data.data
 }
+const declineProposal = async (proposalId, declineReason = '') => {
+  const res = await axiosInstance.post(`/proposals/${proposalId}/decline`, { declineReason })
+  return res.data.data
+}
 
 export {
     getMyProposals,
@@ -35,5 +39,6 @@ export {
     updateProposal,
     withdrawProposal,
     getJobProposals,
-    acceptProposal
+    acceptProposal,
+    declineProposal
 }
