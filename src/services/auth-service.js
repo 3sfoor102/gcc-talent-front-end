@@ -1,56 +1,81 @@
 const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}`
 
-const signUp = async (formData) => {
+const signUp = async function (formData) 
+{
     try {
-        const res = await fetch(`${BASE_URL}/auth/sign-up`, {
+        const res = await fetch(`${BASE_URL}/auth/register`, 
+        {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
         const data = await res.json()
 
-        if (data.err) {
-            console.log(data.err)
-            throw new Error(data.err)
+        if (!data.success) 
+        {
+            console.log(data.error.message)
+            throw new Error(data.error.message)
         }
 
-        if (data.token) {
-            localStorage.setItem('token', data.token)
-            return JSON.parse(atob(data.token.split('.')[1])).payload
+        if (data.data.accessToken) 
+        {
+            localStorage.setItem('token', data.data.accessToken)
+            localStorage.setItem('user', JSON.stringify(data.data.user))
+            return data.data.user
         }
 
-    } catch (err) {
-        throw new Error(err)
+    } catch (err) 
+    {
+        throw new Error(err.message)
     }
-
 }
 
-const signIn = async (formData) => {
+const signIn = async function (formData)  
+{
     try {
-        const res = await fetch(`${BASE_URL}/auth/sign-in`, {
+        const res = await fetch(`${BASE_URL}/auth/login`, 
+        {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
+
         const data = await res.json()
 
-        if (data.err) {
-            console.log(data.err)
-            throw new Error(data.err)
+        if (!data.success) 
+        {
+            console.log(data.error.message)
+            throw new Error(data.error.message)
         }
 
-        if (data.token) {
-            localStorage.setItem('token', data.token)
-            return JSON.parse(atob(data.token.split('.')[1])).payload
+        if (data.data.accessToken) 
+        {
+            localStorage.setItem('token', data.data.accessToken)
+            localStorage.setItem('user', JSON.stringify(data.data.user))
+            return data.data.user
         }
 
-    } catch (err) {
-        throw new Error(err)
+    } catch (err) 
+    {
+        throw new Error(err.message)
     }
+}
 
+const signOut = function () 
+{
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+}
+
+const getUser = function () 
+{
+    const user = localStorage.getItem('user')
+    return user ? JSON.parse(user) : null
 }
 
 export {
     signUp,
     signIn,
+    signOut,
+    getUser,
 }
