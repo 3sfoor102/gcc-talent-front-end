@@ -55,15 +55,15 @@ const Dashboard = (props) => {
                             View reports, manage users, and update platform categories or settings.
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <button className="px-6 py-2.5 bg-accent-sand text-brand-teal font-bold rounded-lg hover:bg-[#B8956B] transition-colors cursor-pointer border-0">
+                            <Link to="/admin/users" className="px-6 py-2.5 bg-accent-sand text-brand-teal font-bold rounded-lg hover:bg-[#B8956B] transition-colors cursor-pointer border-0 no-underline inline-block">
                                 Manage Users
-                            </button>
-                            <button className="px-6 py-2.5 bg-transparent border-2 border-cream-200 text-brand-teal font-bold rounded-lg hover:bg-cream-200 transition-colors cursor-pointer">
+                            </Link>
+                            <Link to="/admin/categories" className="px-6 py-2.5 bg-transparent border-2 border-cream-200 text-brand-teal font-bold rounded-lg hover:bg-cream-200 transition-colors cursor-pointer no-underline inline-block">
                                 Manage Categories
-                            </button>
-                            <button className="px-6 py-2.5 bg-transparent border-2 border-cream-200 text-brand-teal font-bold rounded-lg hover:bg-cream-200 transition-colors cursor-pointer">
+                            </Link>
+                            <Link to="/admin/reports" className="px-6 py-2.5 bg-transparent border-2 border-cream-200 text-brand-teal font-bold rounded-lg hover:bg-cream-200 transition-colors cursor-pointer no-underline inline-block">
                                 Reports & Disputes
-                            </button>
+                            </Link>
                         </div>
                     </div>
 
