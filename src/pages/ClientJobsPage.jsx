@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { getClientJobs, deleteJob, closeJob, reopenJob } from '../services/jobs-service';
 
 const ClientJobsPage = () => {
+    const navigate = useNavigate();
+
     const [jobs, setJobs] = useState([]);
     const [status, setStatus] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -81,7 +83,7 @@ const ClientJobsPage = () => {
             case 'open':
                 return 'bg-[#EEF7F5] text-brand-success border-brand-success/20';
             case 'draft':
-                return 'bg-cream-100 text-teal-600 border-cream-200';
+                return 'bg-brand-cream text-teal-600 border-cream-200';
             case 'in_progress':
                 return 'bg-[#FFF8EE] text-brand-warning border-brand-warning/30';
             case 'completed':
@@ -89,7 +91,7 @@ const ClientJobsPage = () => {
             case 'closed':
                 return 'bg-[#FDECEB] text-brand-danger border-brand-danger/20';
             default:
-                return 'bg-cream-100 text-teal-600 border-cream-200';
+                return 'bg-brand-cream text-teal-600 border-cream-200';
         }
     };
 
@@ -146,7 +148,7 @@ const ClientJobsPage = () => {
                 </div>
             )}
 
-            {/* Loading Skeleton / Status */}
+            {/* Loading State */}
             {loading && (
                 <div className="min-h-[30vh] flex items-center justify-center">
                     <p className="text-[16px] text-teal-600 animate-pulse font-medium">Loading your jobs...</p>
@@ -176,7 +178,8 @@ const ClientJobsPage = () => {
                     {jobs.map((job) => (
                         <article
                             key={job._id}
-                            className="p-6 bg-white border border-cream-200 rounded-[8px] shadow-sm flex flex-col justify-between gap-5 hover:border-teal-600/40 transition-colors"
+                            onClick={() => navigate(`/jobs/${job._id}`)}
+                            className="p-6 bg-white border border-cream-200 rounded-[8px] shadow-sm flex flex-col justify-between gap-5 hover:border-teal-600 hover:shadow-md transition-all cursor-pointer group"
                         >
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-start justify-between gap-2">
@@ -189,6 +192,7 @@ const ClientJobsPage = () => {
                                     </span>
                                     <Link
                                         to={`/client/jobs/${job._id}/proposals`}
+                                        onClick={(e) => e.stopPropagation()}
                                         className="flex items-center gap-1 text-[13px] font-medium text-teal-600 hover:text-ink transition-colors"
                                     >
                                         <span className="material-symbols-outlined text-[16px]">mail</span>
@@ -196,10 +200,8 @@ const ClientJobsPage = () => {
                                     </Link>
                                 </div>
 
-                                <h3 className="text-[18px] font-semibold text-ink leading-snug line-clamp-2">
-                                    <Link to={`/jobs/${job._id}`} className="hover:text-teal-600 transition-colors">
-                                        {job.title}
-                                    </Link>
+                                <h3 className="text-[18px] font-semibold text-ink leading-snug line-clamp-2 group-hover:text-teal-600 transition-colors">
+                                    {job.title}
                                 </h3>
 
                                 <div className="flex items-baseline gap-1 text-[14px] text-teal-600">
@@ -211,7 +213,10 @@ const ClientJobsPage = () => {
                             </div>
 
                             {/* Action Toolbar */}
-                            <div className="pt-4 border-t border-cream-200 flex items-center justify-between gap-2">
+                            <div
+                                className="pt-4 border-t border-cream-200 flex items-center justify-between gap-2"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 <div className="flex items-center gap-2">
                                     {(job.status === 'open' || job.status === 'draft') && (
                                         <Link
@@ -224,6 +229,7 @@ const ClientJobsPage = () => {
 
                                     {job.status === 'open' && (
                                         <button
+                                            type="button"
                                             onClick={() => handleToggleClose(job)}
                                             disabled={actionLoading}
                                             className="px-3 py-1.5 border border-cream-200 hover:border-teal-600 text-teal-600 rounded-[6px] text-[12px] font-medium transition-colors"
@@ -234,6 +240,7 @@ const ClientJobsPage = () => {
 
                                     {job.status === 'closed' && (
                                         <button
+                                            type="button"
                                             onClick={() => handleToggleClose(job)}
                                             disabled={actionLoading}
                                             className="px-3 py-1.5 bg-brand-teal text-white rounded-[6px] text-[12px] font-medium hover:opacity-90 transition-opacity"
@@ -248,6 +255,7 @@ const ClientJobsPage = () => {
                                         {confirmDeleteId === job._id ? (
                                             <div className="flex items-center gap-1.5">
                                                 <button
+                                                    type="button"
                                                     onClick={() => executeDelete(job._id)}
                                                     disabled={actionLoading}
                                                     className="px-2.5 py-1 bg-brand-danger text-white rounded-[6px] text-[11px] font-medium hover:opacity-90"
@@ -255,6 +263,7 @@ const ClientJobsPage = () => {
                                                     Confirm
                                                 </button>
                                                 <button
+                                                    type="button"
                                                     onClick={() => setConfirmDeleteId(null)}
                                                     disabled={actionLoading}
                                                     className="px-2 py-1 text-teal-600 text-[11px]"
@@ -264,6 +273,7 @@ const ClientJobsPage = () => {
                                             </div>
                                         ) : (
                                             <button
+                                                type="button"
                                                 onClick={() => setConfirmDeleteId(job._id)}
                                                 disabled={actionLoading}
                                                 className="p-1.5 text-brand-danger/70 hover:text-brand-danger rounded-[6px] transition-colors"
