@@ -35,7 +35,7 @@ const JobsPage = () => {
 
                 const cleanFilters = Object.entries(appliedFilters).reduce(
                     (acc, [key, value]) => {
-                        if (value !== "") {
+                        if (value !== "" && value !== undefined && value !== null) {
                             acc[key] = value
                         }
                         return acc
@@ -51,13 +51,15 @@ const JobsPage = () => {
                 setJobs(response.data)
                 setMeta(response.meta)
             } catch (err) {
-                setError(err.message)
+                setError(err.response?.data?.error?.message || err.message || "Failed to load jobs")
             } finally {
                 setLoading(false)
             }
         }
         fetchJobs()
     }, [currentPage, appliedFilters])
+
+    const totalPages = Math.max(1, Math.ceil((meta.total || 0) / (meta.limit || 10)))
 
     const handlePrevPage = () => {
         if (currentPage > 1) {
@@ -66,15 +68,14 @@ const JobsPage = () => {
     }
 
     const handleNextPage = () => {
-        const maxPage = Math.ceil(meta.total / (meta.limit || 10))
-        if (currentPage < maxPage) {
+        if (currentPage < totalPages) {
             setCurrentPage((prev) => prev + 1)
         }
     }
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setFormFilters((prev) => ({ ...prev, [name]: value }));
+        setFormFilters((prev) => ({ ...prev, [name]: value }))
     }
 
     const handleSearch = (event) => {
@@ -156,43 +157,41 @@ const JobsPage = () => {
             {!loading && !error && jobs.length > 0 && (
                 <>
                     <div>
-                        {
-                            jobs.map((job) => (
-                                <div key={job._id}>
-                                    <h3>
-                                        <Link to={`/jobs/${job._id}`}>{job.title}</Link>
-                                    </h3>                                    <p>{job.description}</p>
-                                    <ul>
-                                        <li>
-                                            <strong>Budget:</strong> ${job.budgetMin || 0} - $
-                                            {job.budgetMax || 0}
-                                        </li>
-                                        <li>
-                                            <strong>Type:</strong> {job.budgetType}
-                                        </li>
-                                        <li>
-                                            <strong>Level:</strong> {job.experienceLevel}
-                                        </li>
-                                    </ul>
-                                    <hr />
-                                </div>
-                            ))
-                        }
+                        {jobs.map((job) => (
+                            <div key={job._id}>
+                                <h3>
+                                    <Link to={`/jobs/${job._id}`}>{job.title}</Link>
+                                </h3>
+                                <p>{job.description}</p>
+                                <ul>
+                                    <li>
+                                        <strong>Budget:</strong> ${job.budgetMin || 0} - ${job.budgetMax || 0}
+                                    </li>
+                                    <li>
+                                        <strong>Type:</strong> {job.budgetType}
+                                    </li>
+                                    <li>
+                                        <strong>Level:</strong> {job.experienceLevel}
+                                    </li>
+                                </ul>
+                                <hr />
+                            </div>
+                        ))}
                     </div>
 
                     <div>
                         <button
                             onClick={handlePrevPage}
-                            disabled={currentPage <= 1}
+                            disabled={currentPage <= 1 || loading}
                         >
                             Previous
                         </button>
                         <span>
-                            Page {currentPage} of {Math.ceil(meta.total / (meta.limit)) || 1}
+                            {" "}Page {currentPage} of {totalPages}{" "}
                         </span>
                         <button
                             onClick={handleNextPage}
-                            disabled={currentPage >= (Math.ceil(meta.total / (meta.limit)))}
+                            disabled={currentPage >= totalPages || loading}
                         >
                             Next
                         </button>
