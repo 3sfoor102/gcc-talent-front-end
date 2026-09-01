@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router"
-import { signIn } from "../services/auth"
+import { signIn } from "../services/auth-service"
 
 const SignInForm = function (props) 
 {

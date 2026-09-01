@@ -8,6 +8,7 @@ import Landing from "./pages/Landing"
 import Dashboard from "./pages/Dashboard"
 
 // Ali Saleh's imports 
+import Settings from './components/Settings'
 
 
 // Ali Alasfoor's imports 
@@ -18,7 +19,6 @@ import Dashboard from "./pages/Dashboard"
 
 
 
-import Settings from './components/Settings'
 
 const getUserFromToken = () => {
   const token = localStorage.getItem('token')
@@ -37,10 +37,11 @@ const App = () => {
       <Nav user={user} setUser={setUser} />
       <main className="app-main">
       <Routes>
-        // Auth & Admin & Dashboard Rouets 
+        // Auth & Admin & Dashboard Rouets & Settings
         <Route path='/' element={user ? <Dashboard user={user} /> : <Landing />} />
         <Route path='/sign-up' element={<SignUpForm setUser={setUser} />} />
         <Route path='/sign-in' element={<SignInForm setUser={setUser} />} />
+        <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
 
 
         // Profile Routes
@@ -62,7 +63,6 @@ const App = () => {
 
 
 
-        <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
       </Routes>
       </main>
     </div>

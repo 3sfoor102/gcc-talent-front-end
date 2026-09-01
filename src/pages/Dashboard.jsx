@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { index } from '../services/user'
+import { index } from '../services/user-service'
 
 const Dashboard = (props) => {
 
