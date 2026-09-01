@@ -21,6 +21,7 @@ const App = () => {
   const [user, setUser] = useState(getUserFromToken())
   
   return (
+    
     <div>
       <Nav user={user} setUser={setUser} />
       <main className="app-main">
