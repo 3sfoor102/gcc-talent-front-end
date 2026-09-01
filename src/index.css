@@ -1,47 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Cause:wght@100..900&family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Schoolbell&display=swap');
+@import "tailwindcss";
 
-:root {
-  font-family: "Google Sans Flex", sans-serif;
-
-  --color-primary: #4f46e5;
-  --color-primary-dark: #4338ca;
-  --color-primary-soft: #e0e7ff;
-  --color-success: #15803d;
-  --color-text: #1f2937;
-  --color-text-light: #6b7280;
-  --color-background: #f4f6f8;
-  --color-surface: #ffffff;
-  --color-border: #d1d5db;
-  --color-error: #dc2626;
-}
-
-* {
-  box-sizing: border-box;
+@theme {
+  --color-brand-teal: #224548;
+  --color-brand-cream: #F7F0E9;
+  --color-teal-900: #1A3638;
+  --color-teal-600: #2E5A5E;
+  --color-accent-sand: #C9A77C;
+  --color-cream-200: #EFE4D8;
+  --color-ink: #1F2A2B;
 }
 
 body {
-  min-height: 100vh;
-  margin: 0;
-  /* background-color: var(--color-background); */
-  background: #E0E7FF;
-  background: rgb(241, 240, 240);
-  color: var(--color-text);
+  background-color: var(--color-brand-cream);
+  color: var(--color-ink);
 }
 
-button {
-  cursor: pointer;
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid #eaf6f7;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-img {
-  display: block;
-  max-width: 100%;
-}
-
-h1, h2, h3, p {
-  margin-top: 0;
+.radio-custom {
+  accent-color: var(--color-gcc-teal);
 }
