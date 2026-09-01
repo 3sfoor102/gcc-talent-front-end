@@ -5,12 +5,17 @@ const getMyProposals = async (page = 1, limit = 12) => {
     return res.data
 }
 const createProposal = async (jobId, proposalData) => {
-    const res = await axiosInstance.post(`/proposals/jobs/${jobId}`, proposalData)
+    const res = await axiosInstance.post(`/jobs/${jobId}/proposals`, proposalData)
     return res.data.data
 }
 
+const updateProposal = async (proposalId, proposalData) => {
+    const res = await axiosInstance.patch(`/proposals/${proposalId}`, proposalData)
+    return res.data.data
+}
 
 export {
     getMyProposals,
-    createProposal
+    createProposal,
+    updateProposal
 }
