@@ -7,6 +7,8 @@ import SignInForm from "./pages/SignInForm"
 import Landing from "./pages/Landing"
 import Dashboard from "./pages/Dashboard"
 import Settings from './components/Settings'
+import Profile from './components/Profile'
+import EditProfile from './components/EditProfile'
 
 const getUserFromToken = () => {
   const token = localStorage.getItem('token')
@@ -29,6 +31,8 @@ const App = () => {
         <Route path='/sign-up' element={<SignUpForm setUser={setUser} />} />
         <Route path='/sign-in' element={<SignInForm setUser={setUser} />} />
         <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
+        <Route path="/profile" element={user ? <Profile user={user} /> : <Landing />} />
+        <Route path="/profile/edit" element={user ? <EditProfile user={user} /> : <Landing />} />
       </Routes>
       </main>
     </div>
