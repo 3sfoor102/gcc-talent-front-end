@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient, QueryClient } from '@tanstack/react-query';
 import { fetchUserWallet, depositFundsApi } from '../services/wallet-service';
+import { useState } from 'react';
 
 const [amount, setAmount] = useState('')
 const [card, setCard] = useState('4242424242424242')

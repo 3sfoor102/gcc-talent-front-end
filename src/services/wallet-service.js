@@ -16,7 +16,7 @@ const fetchUserWallet = async ()=>{
   
 }   
 const depositFundsApi = async ({amount, card})=> {
-    const res = await fetch (`${BASE_URL/deposit}`, {
+    const res = await fetch (`${BASE_URL}/deposit`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -33,6 +33,6 @@ const depositFundsApi = async ({amount, card})=> {
 
 export {
 fetchUserWallet, depositFundsApi,
-
+ 
 }
 
