@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import { showJob } from "../services/jobs-service";
 
-const JobDetailsPage = () => {
+const JobDetailsPage = ({ user }) => {
     const { jobId } = useParams()
+    const navigate = useNavigate();
 
     const [job, setJob] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -14,7 +15,7 @@ const JobDetailsPage = () => {
             try {
                 setLoading(true)
                 setError(null)
-                const data = await showJob(jobId);
+                const data = await showJob(jobId)
                 setJob(data)
             } catch (err) {
                 setError(err.response?.data?.error?.message || err.message || "Failed to load job details.")
@@ -30,8 +31,19 @@ const JobDetailsPage = () => {
     if (error) return <p>{error}</p>
     if (!job) return <p>No job found.</p>
 
+    const currentUserId = user?._id || user?.id || user?.userId;
+    const jobClientId = job.client?._id || job.client;
+    const isOwner = Boolean(currentUserId && jobClientId && currentUserId.toString() === jobClientId.toString());
+
     return (
         <div>
+
+            {isOwner && (
+                <div>
+                    <Link to={`/jobs/${job._id}/edit`}>Edit Job</Link>
+                    <Link to="/jobs/my-jobs">View All Your Jobs</Link>
+                </div>
+            )}
 
             <h2>{job.title}</h2>
             <p>{job.description}</p>
@@ -75,6 +87,26 @@ const JobDetailsPage = () => {
                     </ul>
                 </div>
             )}
+            <hr />
+
+            <div>
+                {isOwner ? (
+                    <div>
+                        <p><strong>Proposals Received:</strong> {job.proposalsCount || 0}</p>
+                        <Link to={`/jobs/${job._id}/proposals`}>View Received Proposals</Link>
+                    </div>
+                ) : (
+                    <div>
+                        {job.status === "open" ? (
+                            <button onClick={() => navigate(`/jobs/${job._id}/apply`)}>
+                                Submit a Proposal
+                            </button>
+                        ) : (
+                            <p>This job is no longer accepting proposals.</p>
+                        )}
+                    </div>
+                )}
+            </div>
 
         </div>
     )

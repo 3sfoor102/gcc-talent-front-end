@@ -47,6 +47,7 @@ const App = () => {
           <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
           <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
 
+
           {/* Profile Routes */}
 
           {/* Contract Routes */}
@@ -57,7 +58,7 @@ const App = () => {
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/new" element={<JobFormPage />} />
           <Route path="/jobs/my-jobs" element={<ClientJobsPage />} />
-          <Route path="/jobs/:jobId" element={<JobDetailsPage />} />
+        <Route path="/jobs/:jobId" element={<JobDetailsPage user={user} />} />
           <Route path="/jobs/:jobId/edit" element={<JobFormPage />} />
 
           {/* Proposal Routes */}
@@ -65,7 +66,7 @@ const App = () => {
           {/* Messages Routes */}
         </Routes>
       </main>
-    </div>
+    </div >
   )
 }
 
