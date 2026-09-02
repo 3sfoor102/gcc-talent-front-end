@@ -2,8 +2,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router"
 import { getFreelancerProfile, createFreelancerProfile, updateFreelancerProfile } from "../services/profile"
 
-const EditProfile = function (props) 
-{
+const EditProfile = function (props) {
     const navigate = useNavigate()
     const userRole = props.user?.role || 'freelancer'
 
@@ -11,8 +10,8 @@ const EditProfile = function (props)
         bio: '',
         skills: ''
     })
-    
-    const [isNewProfile, setIsNewProfile] = useState(true) 
+
+    const [isNewProfile, setIsNewProfile] = useState(true)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
@@ -33,22 +32,19 @@ const EditProfile = function (props)
         loadProfile()
     }, [userRole])
 
-    const handleChange = function (event) 
-    {
+    const handleChange = function (event) {
         setFormData({ ...formData, [event.target.name]: event.target.value })
     }
 
-    const handleSubmit = async function (event) 
-    {
+    const handleSubmit = async function (event) {
         event.preventDefault()
         setSaving(true)
-        
-        if (userRole === 'freelancer') 
-        {
+
+        if (userRole === 'freelancer') {
             const dataToSend = {
                 ...formData,
-                skills: typeof formData.skills === 'string' 
-                    ? formData.skills.split(',').map(skill => skill.trim()).filter(s => s !== "") 
+                skills: typeof formData.skills === 'string'
+                    ? formData.skills.split(',').map(skill => skill.trim()).filter(s => s !== "")
                     : formData.skills
             }
             if (isNewProfile) {
@@ -56,10 +52,10 @@ const EditProfile = function (props)
             } else {
                 await updateFreelancerProfile(dataToSend)
             }
-        } 
+        }
 
         setSaving(false)
-        navigate('/profile') 
+        navigate('/profile')
     }
 
     if (!props.user) return null
@@ -75,14 +71,14 @@ const EditProfile = function (props)
     return (
         <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6">
             <main className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-cream-200 p-6 md:p-10">
-                
+
                 <header className="mb-8 border-b border-cream-200 pb-5">
                     <h1 className="text-2xl font-bold text-ink mb-1">{isNewProfile ? 'Create Profile' : 'Edit Profile'}</h1>
                     <p className="text-sm text-teal-600 m-0">{isNewProfile ? 'Set up your' : 'Update your'} {userRole} details.</p>
                 </header>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                    
+
                     {userRole === 'freelancer' ? (
                         <>
                             <div className="flex flex-col gap-1.5">

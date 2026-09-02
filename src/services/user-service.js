@@ -1,12 +1,11 @@
 const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}/api/v1/profile`
 
-const getFreelancerProfile = async function () 
-{
+const getFreelancerProfile = async function () {
     try {
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/freelancer`, {
             method: 'GET',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
@@ -20,13 +19,12 @@ const getFreelancerProfile = async function ()
     }
 }
 
-const updateFreelancerProfile = async function (profileData) 
-{
+const updateFreelancerProfile = async function (profileData) {
     try {
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/freelancer`, {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
@@ -41,13 +39,12 @@ const updateFreelancerProfile = async function (profileData)
     }
 }
 
-const getClientProfile = async function () 
-{
+const getClientProfile = async function () {
     try {
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/client`, {
             method: 'GET',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }

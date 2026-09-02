@@ -9,7 +9,7 @@ const Dashboard = (props) => {
 
     const firstName = props.user?.name ? props.user.name.split(' ')[0] : 'User'
     const role = props.user?.role || 'freelancer'
-    
+
     const isClient = role === 'client'
     const isAdmin = role === 'admin'
 
@@ -39,7 +39,7 @@ const Dashboard = (props) => {
         return (
             <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6">
                 <div className="max-w-6xl mx-auto">
-                    
+
                     <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
                             <h1 className="text-3xl font-bold text-ink m-0">Welcome Admin, {firstName}! 👑</h1>
@@ -100,7 +100,7 @@ const Dashboard = (props) => {
     return (
         <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
-                
+
                 <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h1 className="text-3xl font-bold text-ink m-0">Welcome back, {firstName}! 👋</h1>
@@ -134,7 +134,7 @@ const Dashboard = (props) => {
                     </div>
                     <h2 className="text-xl font-bold text-ink mb-2">Ready to get started?</h2>
                     <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                        {isClient 
+                        {isClient
                             ? "Post a new job to find the perfect talent for your next big project."
                             : "Browse through available jobs and send out your proposals."}
                     </p>

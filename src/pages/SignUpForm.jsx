@@ -2,11 +2,10 @@ import { useState } from "react"
 import { useNavigate } from "react-router"
 import { signUp } from "../services/auth-service"
 
-const SignUpForm = function (props) 
-{
+const SignUpForm = function (props) {
     const navigate = useNavigate()
 
-    const initialState = 
+    const initialState =
     {
         name: '',
 
@@ -25,21 +24,18 @@ const SignUpForm = function (props)
 
     const [loading, setLoading] = useState(false)
 
-    const handleChange = function (event) 
-    {
+    const handleChange = function (event) {
         setMessage('')
 
         setFormData({ ...formData, [event.target.name]: event.target.value })
     }
 
-    const handleSubmit = async function (event) 
-    {
+    const handleSubmit = async function (event) {
         event.preventDefault()
 
         setLoading(true)
 
-        if (formData.password !== formData.passwordConfirm) 
-        {
+        if (formData.password !== formData.passwordConfirm) {
             setMessage('Passwords do not match')
             setLoading(false)
             return
@@ -58,8 +54,7 @@ const SignUpForm = function (props)
 
             navigate('/')
 
-        } catch (err) 
-        {
+        } catch (err) {
             setMessage(err.message)
 
             setLoading(false)
@@ -68,12 +63,12 @@ const SignUpForm = function (props)
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden text-gray-900">
-            
+
             <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-gcc-teal blur-[100px] opacity-20 pointer-events-none"></div>
             <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-gcc-sand blur-[100px] opacity-30 pointer-events-none"></div>
 
             <main className="w-full max-w-md glass-card rounded-2xl p-6 md:p-8 relative z-10">
-                
+
                 <header className="text-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-900 mb-1">GCC Talent</h1>
                     <p className="text-sm text-gray-500 m-0">Create your account to get started</p>
@@ -87,7 +82,7 @@ const SignUpForm = function (props)
                 {message && <p className="text-red-500 text-sm font-semibold text-center mb-4">{message}</p>}
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    
+
                     <div className="flex gap-4 mb-2">
                         <label className="flex-1 cursor-pointer border border-gray-200 rounded-lg p-3 flex items-center gap-2 hover:border-gcc-teal transition-colors bg-white">
                             <input type="radio" className="radio-custom w-4 h-4" name="role" value="client" checked={formData.role === 'client'} onChange={handleChange} />
@@ -123,7 +118,7 @@ const SignUpForm = function (props)
                     <button type="submit" className="w-full bg-[#224548] text-white py-3 mt-2 rounded-lg font-semibold flex justify-center items-center gap-2" disabled={loading}>
                         {loading ? 'Creating Account...' : 'Create Account'}
                     </button>
-                    
+
                     <p className="text-xs text-gray-500 text-center mt-2 m-0">
                         By signing up, you agree to our <a className="text-gcc-teal hover:underline" href="#">Terms of Service</a> and <a className="text-gcc-teal hover:underline" href="#">Privacy Policy</a>.
                     </p>
@@ -134,13 +129,13 @@ const SignUpForm = function (props)
                     <span className="text-xs text-gray-400 uppercase tracking-wider">or continue with</span>
                     <div className="flex-1 h-px bg-gray-200"></div>
                 </div>
-                
+
                 <div className="flex flex-col gap-3">
                     <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-[#EFE4D8] bg-white hover:bg-[#EFE4D8] transition-colors cursor-pointer">
                         <img className="w-5 h-5 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTzeer0Cc9AFBLW2Acd4r3sN55SlF_J8UZujUB4KCGYochyUWTBdRoiftO57VW7lKtcleervnF_03T8gUsA1valOFP43lRDu8ikMaAn3aVlDF-pnrgewr_G1BvhDe-EV8uyiaoLjMPp42VVSSKCebAvlUve62bkTK3dak8eJotikudGIdSJBYEm5gq3pzi4KzpTMPuMC-WHY9TRwYJe6PdivqdMJI-cvnGrwtGLDQD-Ub8rL7EBeRK" alt="Google" />
                         <span className="text-sm font-semibold text-[#1F2A2B]">Google</span>
                     </button>
-                    
+
                     <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-[#EFE4D8] bg-white hover:bg-[#EFE4D8] transition-colors cursor-pointer">
                         <img className="w-5 h-5 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRf4vrfkm3vh5JMVBg9oUGZvdFfdyNMWForCIcu1C02sFEgeW7ISklEdUueT4_ydC9pOlFz6uZh1aJSLBWnUx-_k7UXIVLGfXtyugeg1RskkEoyylHW8INYc_VLryU4dkJUe-vsmXQGqCZC7n1_8LliBNR2hQZHhHQbq3wQLvMNQF-ZMkN1jDQ-tzs7-3vvkIzFTHFBopb8GsvTS2qwNeoMi6jsgrYuSHgEZd5Cz8tZdD1EJo9opB-" alt="LinkedIn" />
                         <span className="text-sm font-semibold text-[#1F2A2B]">LinkedIn</span>
@@ -148,7 +143,7 @@ const SignUpForm = function (props)
                 </div>
 
             </main>
-            
+
             <footer className="mt-8 text-center relative z-10">
                 <p className="text-xs text-gray-400 m-0">© 2026 GCC Talent All rights reserved.</p>
             </footer>
