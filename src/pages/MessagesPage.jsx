@@ -31,6 +31,22 @@ const MessagesPage = ({ user }) => {
     }
 
     useEffect(() => {
+        const pollInbox = async () => {
+            try {
+                const convList = await getConversations();
+                if (Array.isArray(convList)) {
+                    setConversations(convList);
+                }
+            } catch (err) {
+                console.error("Failed to poll conversations:", err);
+            }
+        };
+
+        const interval = setInterval(pollInbox, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
         const initInbox = async () => {
             try {
                 setLoading(true)
@@ -198,16 +214,31 @@ const MessagesPage = ({ user }) => {
                         </p>
                     ) : (
                         filteredConversations.map((conv) => {
-                            const partner = getOtherParticipant(conv)
-                            const isActive = activeConversation?._id === conv._id
+                            const partner = getOtherParticipant(conv);
+                            const isActive = activeConversation?._id === conv._id;
+
+                            let unreadCount = 0;
+                            if (conv.unread) {
+                                if (conv.unread instanceof Map) {
+                                    unreadCount = conv.unread.get(currentUserId?.toString()) || 0;
+                                } else if (typeof conv.unread === 'object') {
+                                    unreadCount = conv.unread[currentUserId?.toString()] || 0;
+                                }
+                            }
 
                             return (
                                 <div
                                     key={conv._id}
-                                    onClick={() => setActiveConversation(conv)}
+                                    onClick={() => {
+                                        setActiveConversation(conv);
+                                        if (conv.unread) {
+                                            if (conv.unread instanceof Map) conv.unread.set(currentUserId?.toString(), 0);
+                                            else conv.unread[currentUserId?.toString()] = 0;
+                                        }
+                                    }}
                                     className={`flex items-center gap-3 p-4 border-l-4 cursor-pointer transition-colors ${isActive
-                                            ? "bg-brand-cream/60 border-brand-teal"
-                                            : "border-transparent hover:bg-brand-cream/20"
+                                        ? "bg-brand-cream/60 border-brand-teal"
+                                        : "border-transparent hover:bg-brand-cream/20"
                                         }`}
                                 >
                                     <div className="relative shrink-0">
@@ -222,19 +253,21 @@ const MessagesPage = ({ user }) => {
                                                 partner.name?.charAt(0).toUpperCase() || "U"
                                             )}
                                         </div>
-                                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
                                     </div>
 
                                     <div className="flex-grow min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <span
-                                                className={`text-sm truncate ${isActive ? "font-bold text-ink" : "font-medium text-ink"
+                                                className={`text-sm truncate ${unreadCount > 0 ? "font-bold text-ink" : isActive ? "font-bold text-ink" : "font-medium text-ink"
                                                     }`}
                                             >
                                                 {partner.name || "User"}
                                             </span>
                                             {conv.lastMessage?.at && (
-                                                <span className="text-[11px] text-gray-400">
+                                                <span
+                                                    className={`text-[11px] ${unreadCount > 0 ? "font-bold text-brand-teal" : "text-gray-400"
+                                                        }`}
+                                                >
                                                     {new Date(conv.lastMessage.at).toLocaleTimeString([], {
                                                         hour: "2-digit",
                                                         minute: "2-digit",
@@ -242,12 +275,24 @@ const MessagesPage = ({ user }) => {
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-gray-500 truncate mb-0">
-                                            {conv.lastMessage?.text || "Conversation started"}
-                                        </p>
+
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p
+                                                className={`text-xs truncate mb-0 ${unreadCount > 0 ? "font-semibold text-ink" : "text-gray-500"
+                                                    }`}
+                                            >
+                                                {conv.lastMessage?.text || "Conversation started"}
+                                            </p>
+
+                                            {unreadCount > 0 && (
+                                                <span className="shrink-0 bg-brand-teal text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                                                    {unreadCount > 9 ? "9+" : unreadCount}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            )
+                            );
                         })
                     )}
                 </div>
@@ -284,7 +329,6 @@ const MessagesPage = ({ user }) => {
                                             activePartner.name?.charAt(0).toUpperCase() || "U"
                                         )}
                                     </div>
-                                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-semibold text-ink leading-tight">
@@ -350,8 +394,8 @@ const MessagesPage = ({ user }) => {
                                         >
                                             <div
                                                 className={`p-3 sm:p-3.5 rounded-2xl text-[13px] leading-relaxed shadow-2xs whitespace-pre-line ${isMine
-                                                        ? "bg-brand-teal text-white rounded-br-xs"
-                                                        : "bg-[#eaf4f5] text-ink border border-cream-200/60 rounded-bl-xs"
+                                                    ? "bg-brand-teal text-white rounded-br-xs"
+                                                    : "bg-[#eaf4f5] text-ink border border-cream-200/60 rounded-bl-xs"
                                                     }`}
                                             >
                                                 {msg.text}
@@ -365,14 +409,14 @@ const MessagesPage = ({ user }) => {
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs no-underline transition-colors max-w-full sm:w-64 ${isMine
-                                                                        ? "bg-teal-900/40 border-teal-700 text-white hover:bg-teal-900/60"
-                                                                        : "bg-white border-cream-200 text-ink hover:bg-brand-cream/30"
+                                                                    ? "bg-teal-900/40 border-teal-700 text-white hover:bg-teal-900/60"
+                                                                    : "bg-white border-cream-200 text-ink hover:bg-brand-cream/30"
                                                                     }`}
                                                             >
                                                                 <div
                                                                     className={`p-1.5 rounded flex items-center justify-center ${isMine
-                                                                            ? "bg-teal-800 text-white"
-                                                                            : "bg-brand-cream text-brand-teal"
+                                                                        ? "bg-teal-800 text-white"
+                                                                        : "bg-brand-cream text-brand-teal"
                                                                         }`}
                                                                 >
                                                                     <span className="material-symbols-outlined text-[18px]">
