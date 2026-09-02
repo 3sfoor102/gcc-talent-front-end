@@ -22,6 +22,7 @@ const MessagesPage = ({ user }) => {
     const [loading, setLoading] = useState(true)
     const [sending, setSending] = useState(false)
     const [uploadingFile, setUploadingFile] = useState(false)
+    const [chatError, setChatError] = useState(null)
 
     const messagesEndRef = useRef(null)
     const currentUserId = user?._id || user?.id || user?.userId
@@ -29,6 +30,13 @@ const MessagesPage = ({ user }) => {
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
+
+    // Auto-dismiss in-app notification banner after 4 seconds
+    useEffect(() => {
+        if (!chatError) return
+        const timer = setTimeout(() => setChatError(null), 4000)
+        return () => clearTimeout(timer)
+    }, [chatError])
 
     useEffect(() => {
         const pollInbox = async () => {
@@ -108,9 +116,11 @@ const MessagesPage = ({ user }) => {
 
     const handleSend = async (e) => {
         e?.preventDefault()
-        if (!messageText.trim() || sending || !activeConversation?._id) return
+        setChatError(null)
 
         const textToSend = messageText.trim()
+        if (!textToSend || sending || !activeConversation?._id) return
+
         setMessageText("")
         setSending(true)
 
@@ -120,7 +130,7 @@ const MessagesPage = ({ user }) => {
             })
             setMessages((prev) => [...prev, newMsg])
         } catch (err) {
-            alert("Failed to send message.")
+            setChatError(err.response?.data?.error?.message || err.message || "Failed to send message.")
             setMessageText(textToSend)
         } finally {
             setSending(false)
@@ -138,7 +148,15 @@ const MessagesPage = ({ user }) => {
         const file = e.target.files?.[0]
         if (!file || !activeConversation?._id) return
 
+        // Logical Restriction: File size limit (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            setChatError("Attachment size cannot exceed 10MB.")
+            e.target.value = ""
+            return
+        }
+
         setUploadingFile(true)
+        setChatError(null)
         try {
             const uploadRes = await uploadToCloudinary(file)
             const newMsg = await sendMessage(activeConversation._id, {
@@ -147,7 +165,7 @@ const MessagesPage = ({ user }) => {
             })
             setMessages((prev) => [...prev, newMsg])
         } catch (err) {
-            alert("File upload failed.")
+            setChatError(err.response?.data?.error?.message || err.message || "File upload failed.")
         } finally {
             setUploadingFile(false)
             e.target.value = ""
@@ -183,10 +201,9 @@ const MessagesPage = ({ user }) => {
 
     return (
         <main
-            className="flex-grow flex overflow-hidden w-full max-w-[1280px] mx-auto px-2 sm:px-4 md:px-6 py-4 md:py-6 gap-6"
+            className="flex-grow flex overflow-hidden w-full max-w-[1280px] mx-auto px-2 sm:px-4 md:px-6 py-4 md:py-6 gap-6 relative"
             style={{ height: "calc(100vh - 80px)" }}
         >
-
             <aside
                 className={`${activeConversation ? "hidden md:flex" : "flex"
                     } w-full md:w-80 flex-shrink-0 flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden`}
@@ -300,7 +317,7 @@ const MessagesPage = ({ user }) => {
 
             <section
                 className={`${activeConversation ? "flex" : "hidden md:flex"
-                    } flex-grow flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden w-full`}
+                    } flex-grow flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden w-full relative`}
             >
                 {activeConversation && activePartner ? (
                     <>
@@ -331,25 +348,31 @@ const MessagesPage = ({ user }) => {
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-semibold text-ink leading-tight">
+                                    <h3 className="text-sm font-semibold text-ink leading-tight m-0">
                                         {activePartner.name}
                                     </h3>
-                                    <p className="text-[11px] text-brand-teal font-medium mt-0.5">
+                                    <p className="text-[11px] text-brand-teal font-medium mt-0.5 m-0">
                                         {activeConversation.context?.job?.title
                                             ? `Job: ${activeConversation.context.job.title}`
-                                            : "Online"}
+                                            : "Direct Message"}
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
+                        </header>
+
+                        {/* In-App Notification Toast */}
+                        {chatError && (
+                            <div className="absolute top-16 left-4 right-4 z-20 p-3 bg-red-50 text-brand-danger text-xs rounded-lg border border-red-200 shadow-sm flex items-center justify-between animate-fadeIn">
+                                <span>{chatError}</span>
                                 <button
                                     type="button"
-                                    className="p-2 text-gray-400 hover:text-brand-teal transition-colors rounded-full hover:bg-brand-cream/40 cursor-pointer border-0 bg-transparent"
+                                    onClick={() => setChatError(null)}
+                                    className="text-brand-danger font-bold text-xs bg-transparent border-0 cursor-pointer p-0"
                                 >
-                                    <span className="material-symbols-outlined text-xl">more_vert</span>
+                                    ✕
                                 </button>
                             </div>
-                        </header>
+                        )}
 
                         <div className="flex-grow p-4 sm:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjBmY2ZkIiAvPgo8Y2lyY2xlIGN4PSIxIiBjeT0iMSIgcj0iMSIgZmlsbD0iI2Q5ZTVlNiIgLz4KPC9zdmc+')] bg-repeat">
                             <div className="flex justify-center w-full my-1">
@@ -360,7 +383,7 @@ const MessagesPage = ({ user }) => {
 
                             {messages.map((msg, index) => {
                                 const isMine =
-                                    (msg.sender?._id || msg.sender).toString() === currentUserId.toString()
+                                    (msg.sender?._id || msg.sender).toString() === currentUserId?.toString()
                                 const senderPartner = isMine ? user : activePartner
 
                                 const recipientId = activePartner?._id || activePartner?.id
@@ -514,7 +537,7 @@ const MessagesPage = ({ user }) => {
                         <span className="material-symbols-outlined text-5xl mb-2 text-gray-300">
                             chat
                         </span>
-                        <p className="text-sm">Select a conversation to start chatting.</p>
+                        <p className="text-sm m-0">Select a conversation to start chatting.</p>
                     </div>
                 )}
             </section>

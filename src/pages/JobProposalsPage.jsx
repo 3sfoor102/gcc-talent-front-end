@@ -11,7 +11,12 @@ const JobProposalsPage = ({ user }) => {
     const [proposals, setProposals] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [actionLoading, setActionLoading] = useState(false)
+    const [actionLoadingId, setActionLoadingId] = useState(null)
+
+    // Modal State Management
+    const [acceptModalData, setAcceptModalData] = useState(null) // { proposalId, freelancerName, amount }
+    const [declineModalData, setDeclineModalData] = useState(null) // { proposalId, freelancerName }
+    const [declineReason, setDeclineReason] = useState("")
 
     const fetchProposalsData = async () => {
         try {
@@ -36,15 +41,20 @@ const JobProposalsPage = ({ user }) => {
         if (jobId) fetchProposalsData()
     }, [jobId])
 
-    const handleAccept = async (proposalId) => {
-        if (!window.confirm("Accept this proposal and create a contract?")) return
+    const isJobOpen = job?.status === "open"
+    const hasAcceptedProposal = proposals.some((p) => p.status === "accepted")
+
+    const confirmAccept = async () => {
+        if (!acceptModalData) return
+        const { proposalId } = acceptModalData
+
         try {
-            setActionLoading(true)
-            // acceptProposal returns res.data.data from proposals-service.js
+            setActionLoadingId(proposalId)
+            setError(null)
             const res = await acceptProposal(proposalId)
-            
-            // Correctly parse contract ID from standard Mongoose response or envelope variations
-            const contractId = res?._id || res?.id || res?.contract?._id || res?.data?._id;
+
+            const contractId = res?._id || res?.id || res?.contract?._id || res?.data?._id
+            setAcceptModalData(null)
 
             if (contractId) {
                 navigate(`/contracts/${contractId}`)
@@ -52,59 +62,94 @@ const JobProposalsPage = ({ user }) => {
                 fetchProposalsData()
             }
         } catch (err) {
-            alert(err.response?.data?.error?.message || err.message || "Failed to accept proposal")
+            setError(err.response?.data?.error?.message || err.message || "Failed to accept proposal")
+            setAcceptModalData(null)
         } finally {
-            setActionLoading(false)
+            setActionLoadingId(null)
         }
     }
 
     const handleShortlist = async (proposalId) => {
         try {
-            setActionLoading(true)
+            setActionLoadingId(proposalId)
+            setError(null)
             await shortlistProposal(proposalId)
-            fetchProposalsData()
+            setProposals((prev) =>
+                prev.map((p) => (p._id === proposalId ? { ...p, status: "shortlisted" } : p))
+            )
         } catch (err) {
-            alert(err.response?.data?.error?.message || err.message || "Failed to shortlist proposal")
+            setError(err.response?.data?.error?.message || err.message || "Failed to shortlist proposal")
         } finally {
-            setActionLoading(false)
+            setActionLoadingId(null)
         }
     }
 
-    const handleDecline = async (proposalId) => {
-        if (!window.confirm("Decline this proposal?")) return
+    const confirmDecline = async () => {
+        if (!declineModalData) return
+        const { proposalId } = declineModalData
+
         try {
-            setActionLoading(true)
-            await declineProposal(proposalId)
-            fetchProposalsData()
+            setActionLoadingId(proposalId)
+            setError(null)
+            await declineProposal(proposalId, { reason: declineReason.trim() })
+            setProposals((prev) =>
+                prev.map((p) => (p._id === proposalId ? { ...p, status: "declined", declineReason } : p))
+            )
+            setDeclineModalData(null)
+            setDeclineReason("")
         } catch (err) {
-            alert(err.response?.data?.error?.message || err.message || "Failed to decline proposal")
+            setError(err.response?.data?.error?.message || err.message || "Failed to decline proposal")
+            setDeclineModalData(null)
         } finally {
-            setActionLoading(false)
+            setActionLoadingId(null)
         }
     }
 
     if (loading || !job) {
-        return <div className="p-8 text-center text-teal-600 font-medium">Loading proposals and job details...</div>
-    }
-
-    if (error) {
-        return <div className="max-w-[1280px] mx-auto p-6 text-red-600 bg-red-50 rounded-lg">{error}</div>
+        return (
+            <div className="p-12 text-center text-teal-600 font-medium animate-pulse">
+                Loading proposals and job details...
+            </div>
+        )
     }
 
     return (
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 relative">
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <Link to={`/jobs/${jobId}`} className="text-xs font-semibold text-brand-teal hover:underline mb-1 inline-block">
-                        ← Back to Job Details
-                    </Link>
-                    <h1 className="text-2xl font-bold text-ink">{job?.title}</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">Review received bids and interview candidates.</p>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-ink m-0">{job?.title}</h1>
+                        <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${job.status === "open" ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-700"
+                            }`}>
+                            {job.status}
+                        </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 m-0">Review received bids and interview candidates.</p>
                 </div>
-                <div className="text-sm font-semibold bg-white border border-cream-200 px-4 py-2 rounded-lg text-ink shadow-xs">
+
+                <div className="text-sm font-semibold bg-white border border-cream-200 px-4 py-2 rounded-lg text-ink shadow-xs shrink-0">
                     {proposals.length} Total Proposal{proposals.length === 1 ? "" : "s"}
                 </div>
             </div>
+
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm flex justify-between items-center">
+                    <span>{error}</span>
+                    <button
+                        type="button"
+                        onClick={() => setError(null)}
+                        className="text-red-700 font-bold border-0 bg-transparent cursor-pointer text-xs"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            )}
+
+            {!isJobOpen && (
+                <div className="mb-6 p-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-medium">
+                    This job is currently <strong>{job.status}</strong>. New hires or state changes cannot be executed until it is reopened.
+                </div>
+            )}
 
             {proposals.length === 0 ? (
                 <div className="bg-white border border-cream-200 rounded-lg p-10 text-center text-gray-500 text-sm shadow-xs">
@@ -125,6 +170,7 @@ const JobProposalsPage = ({ user }) => {
 
                         const freelancerName = freelancerObj.name || freelancerObj.user?.name || "Freelancer"
                         const avatarUrl = freelancerObj.avatarUrl || freelancerObj.user?.avatarUrl
+                        const isPendingAction = actionLoadingId === prop._id
 
                         return (
                             <div key={prop._id} className="bg-white border border-cream-200 rounded-lg p-5 shadow-xs flex flex-col md:flex-row justify-between gap-6">
@@ -140,7 +186,7 @@ const JobProposalsPage = ({ user }) => {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 {freelancerId ? (
-                                                    <Link to={`/freelancers/${freelancerId}`} className="font-bold text-sm text-ink hover:underline">
+                                                    <Link to={`/freelancers/${freelancerId}`} className="font-bold text-sm text-ink hover:underline no-underline">
                                                         {freelancerName}
                                                     </Link>
                                                 ) : (
@@ -179,6 +225,12 @@ const JobProposalsPage = ({ user }) => {
                                             ))}
                                         </div>
                                     )}
+
+                                    {prop.status === "declined" && prop.declineReason && (
+                                        <div className="mt-2 text-xs bg-red-50 text-red-700 p-2 rounded border border-red-100">
+                                            <strong>Declined Note:</strong> {prop.declineReason}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex md:flex-col justify-between md:justify-start items-end gap-3 shrink-0 border-t md:border-t-0 md:border-l border-cream-200 pt-3 md:pt-0 md:pl-6">
@@ -208,25 +260,38 @@ const JobProposalsPage = ({ user }) => {
                                         {prop.status !== "accepted" && prop.status !== "declined" && (
                                             <>
                                                 <button
-                                                    onClick={() => handleAccept(prop._id)}
-                                                    disabled={actionLoading}
-                                                    className="px-4 py-2 bg-brand-teal hover:bg-teal-900 text-white text-xs font-semibold rounded-md transition-colors cursor-pointer"
+                                                    type="button"
+                                                    onClick={() => setAcceptModalData({
+                                                        proposalId: prop._id,
+                                                        freelancerName,
+                                                        amount: prop.amount
+                                                    })}
+                                                    disabled={isPendingAction || !isJobOpen || hasAcceptedProposal}
+                                                    className="px-4 py-2 bg-brand-teal hover:bg-teal-900 text-white text-xs font-semibold rounded-md transition-colors cursor-pointer border-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                    title={!isJobOpen ? "Job must be open to accept proposals" : hasAcceptedProposal ? "A proposal has already been accepted" : ""}
                                                 >
-                                                    Accept & Hire
+                                                    {isPendingAction ? "Processing..." : "Accept & Hire"}
                                                 </button>
+
                                                 {prop.status !== "shortlisted" && (
                                                     <button
+                                                        type="button"
                                                         onClick={() => handleShortlist(prop._id)}
-                                                        disabled={actionLoading}
-                                                        className="px-4 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-ink text-xs font-semibold rounded-md cursor-pointer"
+                                                        disabled={isPendingAction}
+                                                        className="px-4 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-ink text-xs font-semibold rounded-md cursor-pointer transition-colors disabled:opacity-50"
                                                     >
                                                         Shortlist
                                                     </button>
                                                 )}
+
                                                 <button
-                                                    onClick={() => handleDecline(prop._id)}
-                                                    disabled={actionLoading}
-                                                    className="px-4 py-1 text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer"
+                                                    type="button"
+                                                    onClick={() => setDeclineModalData({
+                                                        proposalId: prop._id,
+                                                        freelancerName
+                                                    })}
+                                                    disabled={isPendingAction}
+                                                    className="px-4 py-1 text-xs text-red-500 hover:text-red-700 font-semibold cursor-pointer border-0 bg-transparent transition-colors disabled:opacity-50"
                                                 >
                                                     Decline
                                                 </button>
@@ -237,6 +302,85 @@ const JobProposalsPage = ({ user }) => {
                             </div>
                         )
                     })}
+                </div>
+            )}
+
+            {/* Custom Accept & Hire Confirmation Modal */}
+            {acceptModalData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-cream-200 animate-fadeIn">
+                        <div className="w-12 h-12 rounded-full bg-emerald-50 text-brand-success flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-2xl">handshake</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-ink mb-1 m-0">Accept & Hire?</h3>
+                        <p className="text-xs text-gray-500 mb-6 leading-relaxed m-0">
+                            Accepting <strong className="text-ink">{acceptModalData.freelancerName}</strong>'s proposal for <strong className="text-teal-900">${acceptModalData.amount}</strong> will establish an active contract and lock the job terms.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setAcceptModalData(null)}
+                                disabled={Boolean(actionLoadingId)}
+                                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 bg-white cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmAccept}
+                                disabled={Boolean(actionLoadingId)}
+                                className="px-4 py-2 text-xs font-bold bg-brand-teal text-white rounded-lg hover:bg-teal-900 transition-colors border-0 cursor-pointer disabled:opacity-50 min-w-[90px]"
+                            >
+                                {actionLoadingId ? "Hiring..." : "Confirm & Hire"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Decline Confirmation Modal */}
+            {declineModalData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-cream-200 animate-fadeIn">
+                        <div className="w-12 h-12 rounded-full bg-red-50 text-brand-danger flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-2xl">close</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-ink mb-1 m-0">Decline Proposal?</h3>
+                        <p className="text-xs text-gray-500 mb-4 leading-relaxed m-0">
+                            Are you sure you want to decline the proposal submitted by <strong className="text-ink">{declineModalData.freelancerName}</strong>?
+                        </p>
+                        <div className="mb-5">
+                            <label className="block text-[11px] font-semibold text-ink mb-1">Feedback Note (Optional)</label>
+                            <textarea
+                                rows={2}
+                                value={declineReason}
+                                onChange={(e) => setDeclineReason(e.target.value)}
+                                placeholder="Why wasn't this proposal a fit?"
+                                className="w-full text-xs p-2.5 bg-brand-cream/30 border border-cream-200 rounded-lg outline-none focus:border-brand-teal resize-none text-ink"
+                            />
+                        </div>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setDeclineModalData(null)
+                                    setDeclineReason("")
+                                }}
+                                disabled={Boolean(actionLoadingId)}
+                                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 bg-white cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmDecline}
+                                disabled={Boolean(actionLoadingId)}
+                                className="px-4 py-2 text-xs font-bold bg-brand-danger text-white rounded-lg hover:bg-red-700 transition-colors border-0 cursor-pointer disabled:opacity-50 min-w-[80px]"
+                            >
+                                {actionLoadingId ? "Declining..." : "Decline"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -25,6 +25,7 @@ const JobsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [validationError, setValidationError] = useState(null);
   const [formFilters, setFormFilters] = useState(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState(initialFilters);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -37,7 +38,7 @@ const JobsPage = () => {
         const cleanFilters = Object.entries(appliedFilters).reduce(
           (acc, [key, value]) => {
             if (value !== "" && value !== undefined && value !== null) {
-              acc[key] = value;
+              acc[key] = typeof value === "string" ? value.trim() : value;
             }
             return acc;
           },
@@ -49,8 +50,8 @@ const JobsPage = () => {
           limit: 10,
           ...cleanFilters,
         });
-        setJobs(response.data);
-        setMeta(response.meta);
+        setJobs(response.data || []);
+        setMeta(response.meta || initialState);
       } catch (err) {
         setError(err.response?.data?.error?.message || err.message || "Failed to load jobs");
       } finally {
@@ -64,17 +65,40 @@ const JobsPage = () => {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
+    setValidationError(null);
     setFormFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSearch = (event) => {
     event.preventDefault();
+
+    // Logical Restriction: Non-negative budgets
+    if (
+      (formFilters.minBudget !== "" && Number(formFilters.minBudget) < 0) ||
+      (formFilters.maxBudget !== "" && Number(formFilters.maxBudget) < 0)
+    ) {
+      setValidationError("Budget amounts cannot be negative.");
+      return;
+    }
+
+    // Logical Restriction: minBudget cannot exceed maxBudget
+    if (
+      formFilters.minBudget !== "" &&
+      formFilters.maxBudget !== "" &&
+      Number(formFilters.minBudget) > Number(formFilters.maxBudget)
+    ) {
+      setValidationError("Minimum budget cannot exceed maximum budget.");
+      return;
+    }
+
+    setValidationError(null);
     setCurrentPage(1);
     setAppliedFilters(formFilters);
     setIsMobileFilterOpen(false);
   };
 
   const handleReset = () => {
+    setValidationError(null);
     setFormFilters(initialFilters);
     setAppliedFilters(initialFilters);
     setCurrentPage(1);
@@ -90,11 +114,24 @@ const JobsPage = () => {
         <button
           type="button"
           onClick={handleReset}
-          className="text-[12px] font-medium text-teal-600 hover:text-ink transition-colors"
+          className="text-[12px] font-medium text-teal-600 hover:text-ink transition-colors bg-transparent border-0 cursor-pointer p-0"
         >
           Reset All
         </button>
       </div>
+
+      {validationError && (
+        <div className="p-2.5 bg-red-50 text-brand-danger text-xs rounded border border-red-200 flex justify-between items-center">
+          <span>{validationError}</span>
+          <button
+            type="button"
+            onClick={() => setValidationError(null)}
+            className="text-brand-danger font-bold text-xs bg-transparent border-0 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label className="text-[13px] font-medium text-ink">Keywords</label>
@@ -119,7 +156,7 @@ const JobsPage = () => {
           name="budgetType"
           value={formFilters.budgetType}
           onChange={handleInputChange}
-          className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
+          className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all cursor-pointer"
         >
           <option value="">All Budget Types</option>
           <option value="fixed">Fixed Price</option>
@@ -133,7 +170,7 @@ const JobsPage = () => {
           name="experienceLevel"
           value={formFilters.experienceLevel}
           onChange={handleInputChange}
-          className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
+          className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all cursor-pointer"
         >
           <option value="">All Experience Levels</option>
           <option value="entry">Entry Level</option>
@@ -147,6 +184,7 @@ const JobsPage = () => {
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
+            min="0"
             name="minBudget"
             placeholder="Min"
             value={formFilters.minBudget}
@@ -155,6 +193,7 @@ const JobsPage = () => {
           />
           <input
             type="number"
+            min="0"
             name="maxBudget"
             placeholder="Max"
             value={formFilters.maxBudget}
@@ -166,7 +205,7 @@ const JobsPage = () => {
 
       <button
         type="submit"
-        className="w-full py-2.5 mt-2 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium hover:opacity-90 transition-opacity"
+        className="w-full py-2.5 mt-2 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium hover:opacity-90 transition-opacity border-0 cursor-pointer"
       >
         Apply Filters
       </button>
@@ -177,10 +216,10 @@ const JobsPage = () => {
     <div className="w-full max-w-[1280px] mx-auto px-6 py-8 flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-[28px] sm:text-[32px] font-semibold text-ink leading-tight">
+          <h1 className="text-[28px] sm:text-[32px] font-semibold text-ink leading-tight m-0">
             Explore Opportunities
           </h1>
-          <p className="text-[14px] text-teal-600 mt-1">
+          <p className="text-[14px] text-teal-600 mt-1 mb-0">
             Browse verified contracts and high-value projects across the GCC.
           </p>
         </div>
@@ -188,7 +227,7 @@ const JobsPage = () => {
         <button
           type="button"
           onClick={() => setIsMobileFilterOpen(true)}
-          className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-cream-200 rounded-[8px] text-[14px] font-medium text-ink shadow-xs self-start"
+          className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-cream-200 rounded-[8px] text-[14px] font-medium text-ink shadow-xs self-start cursor-pointer"
         >
           <span className="material-symbols-outlined text-[18px] text-teal-600">tune</span>
           Filter Jobs
@@ -213,7 +252,7 @@ const JobsPage = () => {
                 <button
                   type="button"
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="text-teal-600 hover:text-ink text-[20px]"
+                  className="text-teal-600 hover:text-ink text-[20px] bg-transparent border-0 cursor-pointer"
                 >
                   ✕
                 </button>
@@ -243,8 +282,8 @@ const JobsPage = () => {
               <span className="material-symbols-outlined text-[42px] text-teal-600/40">
                 search_off
               </span>
-              <p className="text-[16px] font-medium text-ink">No jobs match your criteria.</p>
-              <p className="text-[14px] text-teal-600">
+              <p className="text-[16px] font-medium text-ink m-0">No jobs match your criteria.</p>
+              <p className="text-[14px] text-teal-600 m-0">
                 Try adjusting your filters or resetting them to view all jobs.
               </p>
             </div>
@@ -260,7 +299,7 @@ const JobsPage = () => {
                 >
                   <div className="flex flex-col gap-2.5">
                     <div className="flex items-start justify-between gap-2">
-                      <h2 className="text-[17px] font-semibold text-ink group-hover:text-teal-600 transition-colors line-clamp-1">
+                      <h2 className="text-[17px] font-semibold text-ink group-hover:text-teal-600 transition-colors line-clamp-1 m-0">
                         {job.title}
                       </h2>
                       <div className="flex flex-col items-end shrink-0">
@@ -281,7 +320,7 @@ const JobsPage = () => {
                       <span>{job.client?.country || "Remote"}</span>
                     </div>
 
-                    <p className="text-[14px] leading-relaxed text-ink line-clamp-2 font-normal">
+                    <p className="text-[14px] leading-relaxed text-ink line-clamp-2 font-normal m-0">
                       {job.description}
                     </p>
                   </div>
@@ -306,7 +345,7 @@ const JobsPage = () => {
               <button
                 onClick={() => setCurrentPage((prev) => prev - 1)}
                 disabled={currentPage <= 1 || loading}
-                className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs"
+                className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs cursor-pointer"
               >
                 Previous
               </button>
@@ -316,7 +355,7 @@ const JobsPage = () => {
               <button
                 onClick={() => setCurrentPage((prev) => prev + 1)}
                 disabled={currentPage >= totalPages || loading}
-                className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs"
+                className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs cursor-pointer"
               >
                 Next
               </button>
