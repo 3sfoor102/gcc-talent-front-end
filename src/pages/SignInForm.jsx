@@ -79,7 +79,7 @@ const SignInForm = function (props) {
                     <div className="flex flex-col gap-1 relative">
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-semibold text-gray-700" htmlFor="login-password">Password</label>
-                            <Link className="text-xs font-medium text-teal-600 hover:underline" to="/forgot-password">Forgot Password?</Link>                        
+                            <Link className="text-xs font-medium text-teal-600 hover:underline" to="/forgot-password">Forgot Password?</Link>
                         </div>
                         <input type="password" name="password" id="login-password" className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-gcc-teal focus:ring-1 focus:ring-gcc-teal transition-colors" value={formData.password} required onChange={handleChange} />
                     </div>

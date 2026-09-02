@@ -1,16 +1,18 @@
-import { Routes, Route } from "react-router"
-import { useState, useEffect } from "react"
-import Nav from "./components/Nav"
-import SignUpForm from "./pages/SignUpForm"
-import SignInForm from "./pages/SignInForm"
-import Landing from "./pages/Landing"
-import Dashboard from "./pages/Dashboard"
-import "./App.css"
-
+import { Routes, Route } from "react-router";
+import { useState, useEffect } from "react";
+import Nav from "./components/Nav";
+import SignUpForm from "./pages/SignUpForm";
+import SignInForm from "./pages/SignInForm";
+import Landing from "./pages/Landing";
+import Dashboard from "./pages/Dashboard";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import "./App.css";
 // Ali Saleh's imports
 import Settings from "./components/Settings"
 import Profile from "./components/Profile"
 import EditProfile from "./components/EditProfile"
+import ManageUsers from "./pages/ManageUsers";
 
 // Ali Alasfoor's imports
 
@@ -111,8 +113,14 @@ const App = () => {
             path="/"
             element={user ? <Dashboard user={user} /> : <Landing />}
           />
+          <Route 
+            path="/admin/users" 
+            element={user?.role === 'admin' ? <ManageUsers /> : <Landing />} 
+          />
           <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
           <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
             path="/settings"
             element={

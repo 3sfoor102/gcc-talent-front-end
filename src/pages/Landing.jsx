@@ -3,10 +3,10 @@ import { Link } from "react-router"
 const Landing = () => {
     return (
         <div className="min-h-screen bg-brand-cream">
-            
+
             <div className="bg-brand-teal text-white py-24 px-6 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-accent-sand blur-[100px] opacity-20 pointer-events-none"></div>
-                
+
                 <div className="relative z-10 max-w-4xl mx-auto">
                     <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
                         Where GCC's Top Talent Meets Great Opportunities
@@ -14,7 +14,7 @@ const Landing = () => {
                     <p className="text-lg md:text-xl text-cream-200 mb-10 max-w-2xl mx-auto leading-relaxed">
                         Join the most trusted professional freelance marketplace in the region. Connect, collaborate, and grow your business or career today.
                     </p>
-                    
+
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                         <Link to="/sign-up" className="px-8 py-3.5 bg-accent-sand text-brand-teal font-bold rounded-lg no-underline hover:bg-[#B8956B] transition-colors text-lg shadow-lg">
                             Get Started

@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router"
 
-const Settings = function (props) 
-{
+const Settings = function (props) {
     const navigate = useNavigate()
     const fileInputRef = useRef(null)
 
-    const initialState = 
+    const initialState =
     {
         name: props.user?.name || '',
         email: props.user?.email || '',
@@ -28,21 +27,19 @@ const Settings = function (props)
         }))
     }, [props.user])
 
-    const handleChange = function (event) 
-    {
+    const handleChange = function (event) {
         setMessage('')
         setFormData({ ...formData, [event.target.name]: event.target.value })
     }
 
     const isNameChanged = formData.name.trim() !== (props.user?.name || '')
     const isPasswordEntered = formData.currentPassword.length > 0 && formData.newPassword.length >= 8 && formData.confirmPassword.length >= 8
-    
+
     const hasChanges = isNameChanged || isPasswordEntered
 
-    const handleSubmit = async function (event)
-    {
+    const handleSubmit = async function (event) {
         event.preventDefault()
-        
+
         if (formData.newPassword || formData.confirmPassword) {
             if (formData.newPassword !== formData.confirmPassword) {
                 setMessage('New password and confirm password do not match!')
@@ -57,7 +54,7 @@ const Settings = function (props)
             const token = localStorage.getItem('token')
             const res = await fetch(`${import.meta.env.VITE_BACK_END_SERVER_URL}/settings`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
@@ -115,7 +112,7 @@ const Settings = function (props)
             const token = localStorage.getItem('token')
             const dbRes = await fetch(`${import.meta.env.VITE_BACK_END_SERVER_URL}/settings`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
@@ -148,7 +145,7 @@ const Settings = function (props)
     return (
         <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6">
             <main className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-cream-200 p-6 md:p-10">
-                
+
                 <header className="mb-8 border-b border-cream-200 pb-5">
                     <h1 className="text-2xl font-bold text-ink mb-1">Account Settings</h1>
                     <p className="text-sm text-teal-600 m-0">View your account information and update your security preferences.</p>
@@ -175,22 +172,22 @@ const Settings = function (props)
                             </div>
                         )}
                     </div>
-                    
+
                     <div className="flex flex-col items-center md:items-start gap-2">
                         <h3 className="text-lg font-semibold text-ink m-0">Profile Picture</h3>
                         <p className="text-sm text-gray-500 m-0 text-center md:text-left">JPG, PNG or WebP, max 5MB.</p>
-                        
-                        <input 
-                            type="file" 
-                            ref={fileInputRef} 
-                            onChange={handleAvatarUpload} 
-                            accept="image/jpeg, image/png, image/webp" 
-                            className="hidden" 
+
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleAvatarUpload}
+                            accept="image/jpeg, image/png, image/webp"
+                            className="hidden"
                         />
-                        
-                        <button 
-                            type="button" 
-                            onClick={triggerFileInput} 
+
+                        <button
+                            type="button"
+                            onClick={triggerFileInput}
                             disabled={avatarLoading}
                             className="mt-1 px-4 py-2 bg-white border border-cream-200 text-brand-teal text-sm font-semibold rounded-lg hover:bg-cream-200 transition-colors cursor-pointer"
                         >
@@ -200,7 +197,7 @@ const Settings = function (props)
                 </section>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-                    
+
                     <section>
                         <h2 className="text-lg font-semibold text-ink mb-4">Profile Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -243,9 +240,9 @@ const Settings = function (props)
                         <button type="button" onClick={() => navigate('/')} className="px-6 py-2.5 rounded-lg text-sm font-semibold text-ink bg-transparent border border-cream-200 hover:bg-cream-200 transition-colors cursor-pointer">
                             Cancel
                         </button>
-                        <button 
-                            type="submit" 
-                            className={`px-6 py-2.5 rounded-lg text-sm font-semibold text-white border-0 transition-colors ${!hasChanges || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-teal hover:bg-teal-900 cursor-pointer'}`} 
+                        <button
+                            type="submit"
+                            className={`px-6 py-2.5 rounded-lg text-sm font-semibold text-white border-0 transition-colors ${!hasChanges || loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-teal hover:bg-teal-900 cursor-pointer'}`}
                             disabled={loading || !hasChanges}
                         >
                             {loading ? 'Saving...' : 'Save Changes'}

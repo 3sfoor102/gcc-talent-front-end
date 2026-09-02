@@ -1,182 +1,290 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
-import { getMyProposals, withdrawProposal } from '../services/proposals-service';
+import { useState, useEffect } from "react";
+import { Link } from "react-router";
+import { getMyProposals, withdrawProposal } from "../services/proposals-service";
 
 const MyProposalsPage = ({ user }) => {
-    const [proposals, setProposals] = useState([])
-    const [meta, setMeta] = useState({ page: 1, limit: 12, total: 0 })
-    const [loading, setLoading] = useState(true)
-    const [actionLoadingId, setActionLoadingId] = useState(null)
-    const [error, setError] = useState(null)
+    const [proposals, setProposals] = useState([]);
+    const [meta, setMeta] = useState({ page: 1, limit: 12, total: 0 });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const [proposalToWithdraw, setProposalToWithdraw] = useState(null);
+    const [isWithdrawing, setIsWithdrawing] = useState(false);
 
     const fetchProposals = async (page = 1) => {
+        setLoading(true);
+        setError(null);
         try {
-            setLoading(true)
-            setError(null)
-            const res = await getMyProposals(page)
-            setProposals(res.data || [])
-            setMeta(res.meta || { page, limit: 12, total: res.data?.length || 0 })
+            const res = await getMyProposals(page);
+            const proposalList = res.data || res.proposals || [];
+            setProposals(proposalList);
+            setMeta(res.meta || { page, limit: 12, total: proposalList.length });
         } catch (err) {
-            setError(err.response?.data?.error?.message || err.message || 'Failed to load your proposals.')
+            setError(err.response?.data?.error?.message || err.message || "Failed to load proposals");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
-        fetchProposals(1)
-    }, [])
+        fetchProposals(1);
+    }, []);
 
-    const handleWithdraw = async (proposalId) => {
-        if (!window.confirm('Are you sure you want to withdraw this proposal? This action cannot be undone.')) {
-            return
-        }
+    const confirmWithdrawal = async () => {
+        if (!proposalToWithdraw) return;
+
+        setIsWithdrawing(true);
+        setError(null);
 
         try {
-            setActionLoadingId(proposalId)
-            const updated = await withdrawProposal(proposalId)
-            setProposals((prev) =>
-                prev.map((p) => (p._id === proposalId ? { ...p, status: updated.status } : p))
-            )
+            const updated = await withdrawProposal(proposalToWithdraw);
+            setProposals((prevProposals) =>
+                prevProposals.map((p) =>
+                    p._id === proposalToWithdraw
+                        ? { ...p, status: updated?.status || 'withdrawn' }
+                        : p
+                )
+            );
+            setProposalToWithdraw(null);
         } catch (err) {
-            alert(err.response?.data?.error?.message || err.message || 'Failed to withdraw proposal.')
+            setError(err.response?.data?.error?.message || err.message || "Failed to withdraw proposal");
+            setProposalToWithdraw(null);
         } finally {
-            setActionLoadingId(null)
+            setIsWithdrawing(false);
         }
-    }
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'accepted':
+                return 'bg-[#EEF7F5] text-brand-success border-brand-success/20';
+            case 'pending':
+                return 'bg-[#FFF8EE] text-brand-warning border-brand-warning/30';
+            case 'shortlisted':
+                return 'bg-blue-50 text-blue-600 border-blue-200';
+            case 'declined':
+                return 'bg-[#FDECEB] text-brand-danger border-brand-danger/20';
+            case 'withdrawn':
+                return 'bg-gray-100 text-gray-500 border-gray-200';
+            default:
+                return 'bg-brand-cream text-teal-600 border-cream-200';
+        }
+    };
 
     if (loading) {
-        return <div className="p-8 text-center text-teal-600">Loading your proposals...</div>
-    }
-
-    if (error) {
-        return <div className="p-8 text-center text-red-600">{error}</div>
+        return (
+            <div className="min-h-screen bg-brand-cream py-20 px-4 flex justify-center items-center">
+                <p className="text-teal-600 font-semibold animate-pulse text-base">
+                    Loading your proposals...
+                </p>
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-ink">My Submitted Proposals</h1>
-                    <p className="text-sm text-gray-500">
-                        Track your bids, client responses, and proposal statuses.
-                    </p>
-                </div>
-                <Link
-                    to="/jobs"
-                    className="bg-brand-teal text-white hover:bg-teal-900 px-4 py-2 rounded-lg text-sm font-semibold no-underline"
-                >
-                    Find More Jobs
-                </Link>
-            </div>
-
-            {proposals.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-lg border border-cream-200 shadow-sm">
-                    <p className="text-gray-500 mb-4">You have not submitted any proposals yet.</p>
+        <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6 relative">
+            <div className="max-w-6xl mx-auto">
+                <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-ink m-0">My Proposals</h1>
+                        <p className="text-teal-600 m-0 mt-1 text-sm">
+                            Track the status of jobs you have applied to.
+                        </p>
+                    </div>
                     <Link
                         to="/jobs"
-                        className="inline-block bg-accent-sand text-brand-teal px-4 py-2 rounded-md font-semibold text-sm hover:bg-[#B8956B]"
+                        className="bg-brand-teal text-white hover:bg-teal-900 px-5 py-2.5 rounded-lg text-sm font-semibold no-underline transition-colors shadow-xs"
                     >
                         Browse Open Jobs
                     </Link>
-                </div>
-            ) : (
-                <div className="grid gap-4">
-                    {proposals.map((proposal) => {
-                        const job = proposal.job || {}
-                        const isPending = proposal.status === 'pending'
+                </header>
 
-                        return (
-                            <div
-                                key={proposal._id}
-                                className="bg-white rounded-lg border border-cream-200 p-6 shadow-sm flex flex-col md:flex-row justify-between gap-6"
-                            >
-                                <div className="flex-1">
-                                    <div className="flex flex-wrap items-center gap-3 mb-2">
-                                        <Link
-                                            to={`/jobs/${job._id || proposal.job}`}
-                                            className="text-lg font-bold text-brand-teal hover:underline"
-                                        >
-                                            {job.title || 'Untitled Job'}
-                                        </Link>
-                                        <span
-                                            className={`px-3 py-0.5 rounded-full text-xs font-semibold capitalize ${proposal.status === 'accepted'
-                                                ? 'bg-emerald-100 text-emerald-800'
-                                                : proposal.status === 'declined'
-                                                    ? 'bg-rose-100 text-rose-800'
-                                                    : proposal.status === 'shortlisted'
-                                                        ? 'bg-amber-100 text-amber-800'
-                                                        : proposal.status === 'withdrawn'
-                                                            ? 'bg-gray-100 text-gray-600'
-                                                            : 'bg-teal-50 text-brand-teal'
-                                                }`}
-                                        >
-                                            {proposal.status}
+                {error && (
+                    <div className="mb-6 p-4 bg-[#FDECEB] text-brand-danger rounded-lg text-sm border border-brand-danger/20">
+                        {error}
+                    </div>
+                )}
+
+                {!loading && !error && proposals.length === 0 && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-cream-200 p-10 text-center">
+                        <div className="w-16 h-16 bg-cream-200 text-brand-teal rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="material-symbols-outlined text-[32px]">description</span>
+                        </div>
+                        <h2 className="text-xl font-bold text-ink mb-2">No Proposals Yet</h2>
+                        <p className="text-gray-500 mb-6 max-w-md mx-auto text-sm leading-relaxed">
+                            You haven't submitted any proposals. Browse available jobs and start applying!
+                        </p>
+                        <Link
+                            to="/jobs"
+                            className="px-6 py-2.5 bg-brand-teal text-white font-bold rounded-lg no-underline hover:bg-teal-900 transition-colors inline-block"
+                        >
+                            Browse Jobs
+                        </Link>
+                    </div>
+                )}
+
+                {!loading && !error && proposals.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {proposals.map((proposal) => {
+                            const job = proposal.job || {};
+                            const jobId = job._id || proposal.job;
+                            const isPending = proposal.status === 'pending';
+                            const isAccepted = proposal.status === 'accepted';
+                            const isWithdrawn = proposal.status === 'withdrawn';
+
+                            return (
+                                <article
+                                    key={proposal._id}
+                                    className={`bg-white p-6 rounded-2xl shadow-sm border border-cream-200 flex flex-col justify-between gap-4 transition-all ${isWithdrawn ? 'opacity-70 grayscale-[25%]' : 'hover:shadow-md hover:border-brand-teal/50'
+                                        }`}
+                                >
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex justify-between items-start gap-3">
+                                            <h3 className="text-lg font-bold text-ink line-clamp-2 m-0 leading-snug">
+                                                {job.title || 'Untitled Job'}
+                                            </h3>
+                                            <span
+                                                className={`px-2.5 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wider shrink-0 ${getStatusBadge(
+                                                    proposal.status
+                                                )}`}
+                                            >
+                                                {proposal.status}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-4 text-xs text-teal-600 font-medium">
+                                            <div className="flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[16px]">payments</span>
+                                                <span className="text-ink font-bold">${proposal.amount}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[16px]">schedule</span>
+                                                <span>{proposal.deliveryDays} Days</span>
+                                            </div>
+                                            {proposal.milestones?.length > 0 && (
+                                                <div className="flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-[16px]">flag</span>
+                                                    <span>{proposal.milestones.length} Milestones</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="bg-brand-cream/40 p-3 rounded-lg border border-cream-200 text-xs">
+                                            <span className="font-bold text-teal-900 mb-1 block">Cover Letter:</span>
+                                            <p className="text-gray-600 line-clamp-3 m-0 leading-relaxed">
+                                                {proposal.coverLetter}
+                                            </p>
+                                        </div>
+
+                                        {proposal.status === 'declined' && proposal.declineReason && (
+                                            <div className="text-xs bg-rose-50 text-rose-700 p-2.5 rounded-lg border border-rose-200">
+                                                <strong className="block mb-0.5">Client Feedback:</strong>
+                                                {proposal.declineReason}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="pt-4 border-t border-cream-200 flex justify-between items-center mt-2">
+                                        <span className="text-xs text-gray-400">
+                                            {new Date(proposal.createdAt).toLocaleDateString()}
                                         </span>
+
+                                        <div className="flex items-center gap-3">
+                                            {isPending && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setProposalToWithdraw(proposal._id)}
+                                                    className="text-xs font-bold text-brand-danger hover:text-red-700 bg-transparent border-0 cursor-pointer p-0 transition-colors"
+                                                >
+                                                    Withdraw
+                                                </button>
+                                            )}
+
+                                            {isAccepted ? (
+                                                <Link
+                                                    to="/contracts"
+                                                    className="text-xs font-bold bg-brand-teal text-white px-3 py-1.5 rounded-md hover:bg-teal-900 no-underline transition-colors"
+                                                >
+                                                    View Contract
+                                                </Link>
+                                            ) : (
+                                                jobId && (
+                                                    <Link
+                                                        to={`/jobs/${jobId}`}
+                                                        className="text-xs font-bold text-brand-teal hover:underline flex items-center gap-0.5 no-underline"
+                                                    >
+                                                        View Job <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                                    </Link>
+                                                )
+                                            )}
+                                        </div>
                                     </div>
+                                </article>
+                            );
+                        })}
+                    </div>
+                )}
 
-                                    <p className="text-xs text-gray-500 mb-3">
-                                        Submitted on {new Date(proposal.createdAt).toLocaleDateString()}
-                                    </p>
+                {/* Pagination Controls */}
+                {meta.total > meta.limit && (
+                    <div className="flex justify-between items-center mt-8 pt-4 border-t border-cream-200">
+                        <button
+                            type="button"
+                            disabled={meta.page <= 1}
+                            onClick={() => fetchProposals(meta.page - 1)}
+                            className="px-4 py-2 text-xs font-semibold bg-white border border-cream-200 rounded-lg disabled:opacity-40 cursor-pointer hover:bg-gray-50"
+                        >
+                            Previous
+                        </button>
+                        <span className="text-xs text-gray-500 font-medium">
+                            Page {meta.page} of {Math.ceil(meta.total / meta.limit)}
+                        </span>
+                        <button
+                            type="button"
+                            disabled={meta.page * meta.limit >= meta.total}
+                            onClick={() => fetchProposals(meta.page + 1)}
+                            className="px-4 py-2 text-xs font-semibold bg-white border border-cream-200 rounded-lg disabled:opacity-40 cursor-pointer hover:bg-gray-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
+            </div>
 
-                                    <p className="text-sm text-ink line-clamp-2 mb-4 bg-brand-cream/30 p-3 rounded">
-                                        {proposal.coverLetter}
-                                    </p>
-
-                                    <div className="flex flex-wrap gap-6 text-sm">
-                                        <div>
-                                            <span className="text-xs text-gray-500 block">Bid Amount</span>
-                                            <strong className="text-brand-teal">${proposal.amount}</strong>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 block">Delivery</span>
-                                            <strong>{proposal.deliveryDays} Days</strong>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 block">Milestones</span>
-                                            <strong>{proposal.milestones?.length || 0}</strong>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 block">Attachments</span>
-                                            <strong>{proposal.attachments?.length || 0}</strong>
-                                        </div>
-                                    </div>
-
-                                    {proposal.status === 'declined' && proposal.declineReason && (
-                                        <div className="mt-3 text-xs bg-rose-50 text-rose-700 p-2 rounded border border-rose-200">
-                                            <strong>Client Feedback:</strong> {proposal.declineReason}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="md:w-40 flex flex-col justify-center border-t md:border-t-0 md:border-l border-cream-200 pt-4 md:pt-0 md:pl-6">
-                                    {isPending ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleWithdraw(proposal._id)}
-                                            disabled={actionLoadingId === proposal._id}
-                                            className="w-full text-xs font-semibold text-rose-600 border border-rose-300 hover:bg-rose-50 py-2 px-3 rounded transition disabled:opacity-50"
-                                        >
-                                            {actionLoadingId === proposal._id ? 'Processing...' : 'Withdraw Proposal'}
-                                        </button>
-                                    ) : proposal.status === 'accepted' ? (
-                                        <Link
-                                            to="/contracts"
-                                            className="w-full text-center bg-brand-teal text-white text-xs font-semibold py-2 px-3 rounded hover:bg-teal-900 transition no-underline"
-                                        >
-                                            View Contract
-                                        </Link>
-                                    ) : (
-                                        <span className="text-center text-xs text-gray-400">No actions</span>
-                                    )}
-                                </div>
-                            </div>
-                        )
-                    })}
+            {/* Custom Confirmation Modal */}
+            {proposalToWithdraw && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl animate-fadeIn border border-cream-200">
+                        <div className="w-12 h-12 rounded-full bg-red-50 text-brand-danger flex items-center justify-center mb-4 border border-red-100">
+                            <span className="material-symbols-outlined text-[24px]">warning</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-ink mb-1 m-0">Withdraw Proposal?</h3>
+                        <p className="text-gray-500 mb-6 text-xs m-0 leading-relaxed">
+                            Are you sure you want to withdraw this proposal? You will not be able to undo this action.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setProposalToWithdraw(null)}
+                                disabled={isWithdrawing}
+                                className="px-4 py-2 rounded-lg text-gray-600 text-xs font-bold hover:bg-gray-100 transition-colors border border-gray-200 bg-white cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={confirmWithdrawal}
+                                disabled={isWithdrawing}
+                                className="px-4 py-2 rounded-lg bg-brand-danger text-white text-xs font-bold hover:bg-red-700 transition-colors border-0 cursor-pointer disabled:opacity-50 flex items-center justify-center min-w-[85px]"
+                            >
+                                {isWithdrawing ? 'Processing...' : 'Withdraw'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default MyProposalsPage
+export default MyProposalsPage;

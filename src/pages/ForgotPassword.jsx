@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router"
-import { forgotPassword } from "../services/auth"
+import { forgotPassword } from "../services/auth-service"
 
 const ForgotPassword = () => {
     const navigate = useNavigate()
@@ -49,7 +49,7 @@ const ForgotPassword = () => {
                         {loading ? 'Sending...' : 'Send Reset Link'}
                     </button>
                 </form>
-                
+
                 <div className="mt-6 text-center">
                     <Link to="/sign-in" className="text-sm font-medium text-teal-600 hover:underline">Back to Login</Link>
                 </div>

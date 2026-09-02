@@ -1,7 +1,6 @@
 const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}/profile`
 
-const getFreelancerProfile = async function () 
-{
+const getFreelancerProfile = async function () {
     try {
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/freelancer`, {
@@ -9,7 +8,7 @@ const getFreelancerProfile = async function ()
             headers: { 'Authorization': `Bearer ${token}` }
         })
         if (res.status === 404) return null
-        
+
         const data = await res.json()
         if (!data.success) throw new Error('Failed to fetch')
         return data.data.profile
@@ -18,26 +17,25 @@ const getFreelancerProfile = async function ()
     }
 }
 
-const createFreelancerProfile = async function (profileData) 
-{
+const createFreelancerProfile = async function (profileData) {
     try {
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/freelancer`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(profileData)
         })
-        
+
         const data = await res.json()
-        
+
         if (!res.ok) {
             console.error("Backend Error Details:", data)
             return null
         }
-        
+
         return data.data?.profile
     } catch (err) {
         console.error(err)
@@ -45,13 +43,12 @@ const createFreelancerProfile = async function (profileData)
     }
 }
 
-const updateFreelancerProfile = async function (profileData) 
-{
+const updateFreelancerProfile = async function (profileData) {
     try {
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/freelancer`, {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
@@ -66,8 +63,7 @@ const updateFreelancerProfile = async function (profileData)
 }
 
 
-const getClientProfile = async function () 
-{
+const getClientProfile = async function () {
     return null
 }
 

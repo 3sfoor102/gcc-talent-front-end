@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, useParams, Link } from "react-router"
-import { resetPassword } from "../services/auth"
+import { resetPassword } from "../services/auth-service"
 
 const ResetPassword = () => {
     const { token } = useParams()
@@ -53,11 +53,11 @@ const ResetPassword = () => {
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-semibold text-ink">New Password</label>
-                            <input type="password" name="newPassword" value={formData.newPassword} className="w-full px-4 py-3 rounded-lg border border-cream-200 focus:outline-none focus:border-brand-teal focus:ring-1" minLength="8" required onChange={(e) => setFormData({...formData, newPassword: e.target.value})} />
+                            <input type="password" name="newPassword" value={formData.newPassword} className="w-full px-4 py-3 rounded-lg border border-cream-200 focus:outline-none focus:border-brand-teal focus:ring-1" minLength="8" required onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })} />
                         </div>
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-semibold text-ink">Confirm Password</label>
-                            <input type="password" name="confirmPassword" value={formData.confirmPassword} className="w-full px-4 py-3 rounded-lg border border-cream-200 focus:outline-none focus:border-brand-teal focus:ring-1" minLength="8" required onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})} />
+                            <input type="password" name="confirmPassword" value={formData.confirmPassword} className="w-full px-4 py-3 rounded-lg border border-cream-200 focus:outline-none focus:border-brand-teal focus:ring-1" minLength="8" required onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
                         </div>
                         <button type="submit" className="w-full bg-brand-teal text-white py-3 mt-2 rounded-lg font-semibold cursor-pointer hover:bg-teal-900 transition-colors" disabled={loading}>
                             {loading ? 'Saving...' : 'Update Password'}
