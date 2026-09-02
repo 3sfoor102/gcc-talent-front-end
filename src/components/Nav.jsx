@@ -16,6 +16,7 @@ const Nav = function (props) {
         setIsProfileMenuOpen(false)
     }
 
+    const isAdmin = props.user?.role === 'admin'
     const isClient = props.user?.role === 'client'
     const isFreelancer = props.user?.role === 'freelancer'
     const currentUserId = props.user?._id || props.user?.id || props.user?.userId
@@ -192,13 +193,43 @@ const Nav = function (props) {
                                             Dashboard
                                         </Link>
 
-                                        <Link
-                                            to={profilePath}
-                                            onClick={() => setIsProfileMenuOpen(false)}
-                                            className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
-                                        >
-                                            View Profile
-                                        </Link>
+                                        {/* Only show View Profile if NOT admin */}
+                                        {!isAdmin && (
+                                            <Link
+                                                to={profilePath}
+                                                onClick={() => setIsProfileMenuOpen(false)}
+                                                className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                            >
+                                                View Profile
+                                            </Link>
+                                        )}
+
+                                        {/* Admin specific tools */}
+                                        {isAdmin && (
+                                            <>
+                                                <Link
+                                                    to="/admin/users"
+                                                    onClick={() => setIsProfileMenuOpen(false)}
+                                                    className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                                >
+                                                    Manage Users
+                                                </Link>
+                                                <Link
+                                                    to="/admin/categories"
+                                                    onClick={() => setIsProfileMenuOpen(false)}
+                                                    className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                                >
+                                                    Manage Categories
+                                                </Link>
+                                                <Link
+                                                    to="/admin/reports"
+                                                    onClick={() => setIsProfileMenuOpen(false)}
+                                                    className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                                >
+                                                    Manage Reports
+                                                </Link>
+                                            </>
+                                        )}
 
                                         <Link
                                             to="/settings"
@@ -236,7 +267,7 @@ const Nav = function (props) {
                 {/* Mobile / Tablet Toggle Header */}
                 <div className="flex xl:hidden items-center gap-2">
                     {props.user && (
-                        <Link to={profilePath} className="flex items-center">
+                        <Link to={isAdmin ? "/" : profilePath} className="flex items-center">
                             <div className="h-8 w-8 rounded-full bg-cream-200 flex items-center justify-center text-brand-teal text-xs font-bold overflow-hidden">
                                 {props.user.avatarUrl ? (
                                     <img src={props.user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
@@ -324,11 +355,37 @@ const Nav = function (props) {
                                         Dashboard
                                     </Link>
                                 </li>
-                                <li>
-                                    <Link to={profilePath} onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
-                                        Profile
-                                    </Link>
-                                </li>
+
+                                {/* Only show Profile if NOT admin */}
+                                {!isAdmin && (
+                                    <li>
+                                        <Link to={profilePath} onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                            Profile
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {/* Admin Management Links */}
+                                {isAdmin && (
+                                    <>
+                                        <li>
+                                            <Link to="/admin/users" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                                Manage Users
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/admin/categories" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                                Manage Categories
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/admin/reports" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                                Manage Reports
+                                            </Link>
+                                        </li>
+                                    </>
+                                )}
+
                                 <li>
                                     <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         Settings
