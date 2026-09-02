@@ -158,6 +158,7 @@ const ManageReports = () => {
                                     <option value="pending">Pending</option>
                                     <option value="reviewed">Reviewed</option>
                                     <option value="resolved">Resolved</option>
+                                    <option value="banned">Resolved & Ban User 🔨</option>
                                 </select>
                             </div>
 
