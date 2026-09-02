@@ -135,9 +135,8 @@ const MyProposalsPage = ({ user }) => {
                             return (
                                 <article
                                     key={proposal._id}
-                                    className={`bg-white p-6 rounded-2xl shadow-sm border border-cream-200 flex flex-col justify-between gap-4 transition-all ${
-                                        isWithdrawn ? 'opacity-70 grayscale-[25%]' : 'hover:shadow-md hover:border-brand-teal/50'
-                                    }`}
+                                    className={`bg-white p-6 rounded-2xl shadow-sm border border-cream-200 flex flex-col justify-between gap-4 transition-all ${isWithdrawn ? 'opacity-70 grayscale-[25%]' : 'hover:shadow-md hover:border-brand-teal/50'
+                                        }`}
                                 >
                                     <div className="flex flex-col gap-3">
                                         <div className="flex justify-between items-start gap-3">
