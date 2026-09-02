@@ -80,5 +80,5 @@ export {
     updateCategory, 
     deleteCategory,
     getAdminReports,
-    updateReportStatus
+    updateReportStatus,
 };
