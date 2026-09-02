@@ -30,7 +30,6 @@ const MessagesPage = ({ user }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  // 1. Initial Load & Conversation Initiation
   useEffect(() => {
     const initInbox = async () => {
       try {
@@ -54,7 +53,6 @@ const MessagesPage = ({ user }) => {
             setActiveConversation(created)
           }
         } else if (window.innerWidth >= 768 && convList.length > 0) {
-          // Only auto-select first conversation on desktop screens
           setActiveConversation(convList[0])
         }
 
@@ -69,7 +67,6 @@ const MessagesPage = ({ user }) => {
     if (currentUserId) initInbox()
   }, [targetRecipientId, targetJobId, currentUserId])
 
-  // 2. Fetch Messages & Polling
   useEffect(() => {
     if (!activeConversation?._id) return
 
@@ -93,7 +90,6 @@ const MessagesPage = ({ user }) => {
     scrollToBottom()
   }, [messages])
 
-  // 3. Handlers
   const handleSend = async (e) => {
     e?.preventDefault()
     if (!messageText.trim() || sending || !activeConversation?._id) return
