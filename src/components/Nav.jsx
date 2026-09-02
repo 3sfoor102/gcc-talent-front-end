@@ -220,6 +220,15 @@ const Nav = function (props) {
                             <>
                                 <li>
                                     <Link 
+                                        to="/messages" 
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
+                                    >
+                                        Messages
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link 
                                         to="/" 
                                         onClick={() => setIsMobileMenuOpen(false)}
                                         className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
