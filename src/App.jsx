@@ -26,6 +26,7 @@ import ProfileEditorPage from "./pages/ProfileEditorPage"
 import PublicFreelancerProfilePage from "./pages/PublicFreelancerProfilePage"
 import PublicClientProfilePage from "./pages/PublicClientProfilePage"
 import FreelancerSearchPage from "./pages/FreelancerSearchPage"
+import MessagesPage from './pages/MessagesPage'
 // End of Hasan's
 
 const getUserFromToken = () => {
@@ -175,6 +176,7 @@ const App = () => {
           />
 
           {/* Messages Routes */}
+          <Route path="/messages" element={user ? <MessagesPage user={user} /> : <Landing />} />
         </Routes>
       </main>
     </div>
