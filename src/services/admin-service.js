@@ -54,11 +54,31 @@ const deleteCategory = async (categoryId) => {
     }
 };
 
+const getAdminReports = async () => {
+    try {
+        const response = await axiosInstance.get('/admin/reports');
+        return response.data.data;
+    } catch (err) {
+        throw new Error(err.response?.data?.error?.message || 'Failed to fetch reports');
+    }
+};
+
+const updateReportStatus = async (reportId, status) => {
+    try {
+        const response = await axiosInstance.patch(`/admin/reports/${reportId}/status`, { status });
+        return response.data.data;
+    } catch (err) {
+        throw new Error(err.response?.data?.error?.message || 'Failed to update report status');
+    }
+};
+
 export { 
     getAllUsers, 
     toggleUserStatus, 
     getAdminCategories, 
     createCategory, 
     updateCategory, 
-    deleteCategory 
+    deleteCategory,
+    getAdminReports,
+    updateReportStatus,
 };

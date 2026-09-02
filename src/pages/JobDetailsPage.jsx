@@ -4,6 +4,7 @@ import { showJob } from "../services/jobs-service";
 import { createProposal } from "../services/proposals-service";
 import { uploadToCloudinary } from "../services/upload-service";
 import { getMyFreelancerProfile } from "../services/profile-service";
+import ReportModal from "../components/ReportModal";
 
 const JobDetailsPage = ({ user }) => {
     const { jobId } = useParams()
@@ -34,6 +35,8 @@ const JobDetailsPage = ({ user }) => {
     const [isProfileComplete, setIsProfileComplete] = useState(false)
     const [checkingProfile, setCheckingProfile] = useState(true)
     const [showIncompleteModal, setShowIncompleteModal] = useState(false)
+    
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
     useEffect(() => {
         const fetchJob = async () => {
@@ -221,7 +224,7 @@ const JobDetailsPage = ({ user }) => {
     }
 
     return (
-        <div className="w-full max-w-[1280px] mx-auto px-6 py-12 flex flex-col md:flex-row gap-8 items-start">
+        <div className="w-full max-w-[1280px] mx-auto px-6 py-12 flex flex-col md:flex-row gap-8 items-start relative">
             <div className="w-full md:w-7/12 lg:w-8/12 flex flex-col gap-8">
                 {isOwner && (
                     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-[8px] border border-cream-200 shadow-sm">
@@ -365,263 +368,276 @@ const JobDetailsPage = ({ user }) => {
             </div>
 
             <aside className="w-full md:w-5/12 lg:w-4/12 relative">
-                <div className="sticky top-24 bg-white rounded-[8px] border border-cream-200 shadow-sm p-6 flex flex-col gap-5">
-                    {isOwner ? (
-                        <div className="flex flex-col gap-4">
-                            <h3 className="text-[20px] font-semibold text-ink">Proposal Overview</h3>
-                            <div className="p-4 bg-brand-cream rounded-[8px] border border-cream-200 text-center">
-                                <span className="block text-[32px] font-semibold text-teal-900">
-                                    {job.proposalsCount || 0}
-                                </span>
-                                <span className="text-[14px] font-medium text-teal-600">
-                                    Proposals Received
-                                </span>
+                <div className="sticky top-24">
+                    <div className="bg-white rounded-[8px] border border-cream-200 shadow-sm p-6 flex flex-col gap-5">
+                        {isOwner ? (
+                            <div className="flex flex-col gap-4">
+                                <h3 className="text-[20px] font-semibold text-ink">Proposal Overview</h3>
+                                <div className="p-4 bg-brand-cream rounded-[8px] border border-cream-200 text-center">
+                                    <span className="block text-[32px] font-semibold text-teal-900">
+                                        {job.proposalsCount || 0}
+                                    </span>
+                                    <span className="text-[14px] font-medium text-teal-600">
+                                        Proposals Received
+                                    </span>
+                                </div>
+                                <Link
+                                    to={`/client/jobs/${job._id}/proposals`}
+                                    className="w-full py-3 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] text-[14px] font-semibold text-center shadow-xs transition-colors block no-underline"
+                                >
+                                    Review Proposals ({job.proposalsCount || 0})
+                                </Link>
                             </div>
-                            <Link
-                                to={`/client/jobs/${job._id}/proposals`}
-                                className="w-full py-3 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] text-[14px] font-semibold text-center shadow-xs transition-colors block no-underline"
-                            >
-                                Review Proposals ({job.proposalsCount || 0})
-                            </Link>
-                        </div>
-                    ) : isFreelancer ? (
-                        job.status === "open" ? (
-                            checkingProfile ? (
-                                <div className="p-6 text-center text-teal-600 animate-pulse text-[14px]">
-                                    Checking profile readiness...
-                                </div>
-                            ) : !isProfileComplete ? (
-                                /* F-PRO-05: Incomplete profile placeholder state */
-                                <div className="flex flex-col gap-3 p-4 bg-amber-50/60 border border-amber-200 rounded-[8px] text-center">
-                                    <span className="text-2xl">⚠️</span>
-                                    <h4 className="text-[16px] font-bold text-ink">Profile Setup Required</h4>
-                                    <p className="text-[13px] text-gray-600 leading-relaxed">
-                                        You must add your headline, bio, hourly rate, and skills before submitting proposals on jobs.
-                                    </p>
-                                    <Link
-                                        to="/freelancer/profile"
-                                        className="mt-2 w-full py-2.5 bg-brand-teal hover:bg-teal-900 text-white rounded-[8px] text-[13px] font-semibold transition-colors no-underline block"
-                                    >
-                                        Complete Profile
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-4">
-                                    <div>
-                                        <h3 className="text-[20px] font-semibold text-ink">
-                                            Submit Proposal
-                                        </h3>
-                                        <p className="text-[13px] text-teal-600 mt-0.5">
-                                            Send your offer directly to the client
-                                        </p>
+                        ) : isFreelancer ? (
+                            job.status === "open" ? (
+                                checkingProfile ? (
+                                    <div className="p-6 text-center text-teal-600 animate-pulse text-[14px]">
+                                        Checking profile readiness...
                                     </div>
-
-                                    {proposalError && (
-                                        <div className="p-3 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[13px]">
-                                            {proposalError}
+                                ) : !isProfileComplete ? (
+                                    <div className="flex flex-col gap-3 p-4 bg-amber-50/60 border border-amber-200 rounded-[8px] text-center">
+                                        <span className="text-2xl">⚠️</span>
+                                        <h4 className="text-[16px] font-bold text-ink">Profile Setup Required</h4>
+                                        <p className="text-[13px] text-gray-600 leading-relaxed">
+                                            You must add your headline, bio, hourly rate, and skills before submitting proposals on jobs.
+                                        </p>
+                                        <Link
+                                            to="/freelancer/profile"
+                                            className="mt-2 w-full py-2.5 bg-brand-teal hover:bg-teal-900 text-white rounded-[8px] text-[13px] font-semibold transition-colors no-underline block"
+                                        >
+                                            Complete Profile
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-4">
+                                        <div>
+                                            <h3 className="text-[20px] font-semibold text-ink">
+                                                Submit Proposal
+                                            </h3>
+                                            <p className="text-[13px] text-teal-600 mt-0.5">
+                                                Send your offer directly to the client
+                                            </p>
                                         </div>
-                                    )}
-                                    {proposalSuccess && (
-                                        <div className="p-3 bg-[#EEF7F5] text-brand-success border border-brand-success/20 rounded-[8px] text-[13px]">
-                                            Proposal submitted successfully!
-                                        </div>
-                                    )}
 
-                                    <form onSubmit={handleProposalSubmit} className="flex flex-col gap-4">
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-[13px] font-medium text-ink">
-                                                    Bid Amount ($) *
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="amount"
-                                                    value={proposalData.amount}
-                                                    onChange={handleProposalChange}
-                                                    required
-                                                    placeholder="e.g. 5000"
-                                                    className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
-                                                />
+                                        {proposalError && (
+                                            <div className="p-3 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[13px]">
+                                                {proposalError}
                                             </div>
-
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-[13px] font-medium text-ink">
-                                                    Delivery (Days) *
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="deliveryDays"
-                                                    value={proposalData.deliveryDays}
-                                                    onChange={handleProposalChange}
-                                                    required
-                                                    placeholder="e.g. 14"
-                                                    className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
-                                                />
+                                        )}
+                                        {proposalSuccess && (
+                                            <div className="p-3 bg-[#EEF7F5] text-brand-success border border-brand-success/20 rounded-[8px] text-[13px]">
+                                                Proposal submitted successfully!
                                             </div>
-                                        </div>
+                                        )}
 
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[13px] font-medium text-ink">
-                                                Cover Letter *
-                                            </label>
-                                            <textarea
-                                                name="coverLetter"
-                                                rows="4"
-                                                value={proposalData.coverLetter}
-                                                onChange={handleProposalChange}
-                                                required
-                                                placeholder="Why are you a good fit for this project?"
-                                                className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink resize-none transition-all"
-                                            />
-                                        </div>
-
-                                        <div className="p-3.5 border border-cream-200 rounded-[8px] bg-brand-cream flex flex-col gap-2.5">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[13px] font-semibold text-ink">
-                                                    Optional Milestones
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={addMilestone}
-                                                    className="flex items-center gap-1 px-2.5 py-1 bg-brand-teal text-white rounded-[6px] text-[12px] font-medium hover:opacity-90 transition-opacity cursor-pointer"
-                                                >
-                                                    <span className="material-symbols-outlined text-[15px]">add</span>
-                                                    Add
-                                                </button>
-                                            </div>
-
-                                            <div className="flex flex-col gap-2">
-                                                <input
-                                                    type="text"
-                                                    name="title"
-                                                    placeholder="Milestone Title"
-                                                    value={milestone.title}
-                                                    onChange={handleMilestoneChange}
-                                                    className="w-full px-3 py-1.5 rounded-[8px] border border-cream-200 bg-white text-[13px] text-ink focus:border-teal-600 outline-none"
-                                                />
-                                                <div className="grid grid-cols-2 gap-2">
+                                        <form onSubmit={handleProposalSubmit} className="flex flex-col gap-4">
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-[13px] font-medium text-ink">
+                                                        Bid Amount ($) *
+                                                    </label>
                                                     <input
                                                         type="number"
                                                         name="amount"
-                                                        placeholder="Amount ($)"
-                                                        value={milestone.amount}
-                                                        onChange={handleMilestoneChange}
-                                                        className="w-full px-3 py-1.5 rounded-[8px] border border-cream-200 bg-white text-[13px] text-ink focus:border-teal-600 outline-none"
+                                                        value={proposalData.amount}
+                                                        onChange={handleProposalChange}
+                                                        required
+                                                        placeholder="e.g. 5000"
+                                                        className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
                                                     />
+                                                </div>
+
+                                                <div className="flex flex-col gap-1">
+                                                    <label className="text-[13px] font-medium text-ink">
+                                                        Delivery (Days) *
+                                                    </label>
                                                     <input
-                                                        type="date"
-                                                        name="dueDate"
-                                                        value={milestone.dueDate}
-                                                        onChange={handleMilestoneChange}
-                                                        className="w-full px-3 py-1.5 rounded-[8px] border border-cream-200 bg-white text-[13px] text-ink focus:border-teal-600 outline-none"
+                                                        type="number"
+                                                        name="deliveryDays"
+                                                        value={proposalData.deliveryDays}
+                                                        onChange={handleProposalChange}
+                                                        required
+                                                        placeholder="e.g. 14"
+                                                        className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink transition-all"
                                                     />
                                                 </div>
                                             </div>
 
-                                            {proposalData.milestones.length > 0 && (
-                                                <div className="flex flex-col gap-1.5 mt-1 border-t border-cream-200 pt-2">
-                                                    {proposalData.milestones.map((m, idx) => (
-                                                        <div
-                                                            key={idx}
-                                                            className="flex items-center justify-between p-2 bg-white rounded-[6px] border border-cream-200 text-[12px]"
-                                                        >
-                                                            <span className="text-ink">
-                                                                {m.title} - ${m.amount}{" "}
-                                                                <span className="text-teal-600 text-[11px]">
-                                                                    ({m.dueDate || "No date"})
-                                                                </span>
-                                                            </span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeMilestone(idx)}
-                                                                className="text-brand-danger font-bold px-1.5 hover:opacity-80 cursor-pointer"
-                                                            >
-                                                                ×
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="text-[13px] font-medium text-ink">
-                                                Attachments (Optional)
-                                            </label>
-                                            <div className="flex items-center gap-2">
-                                                <label className="cursor-pointer px-3 py-1.5 border border-cream-200 rounded-[8px] bg-brand-cream hover:bg-cream-200 text-[13px] font-medium text-ink transition-colors">
-                                                    Choose File
-                                                    <input
-                                                        type="file"
-                                                        onChange={handleFileUpload}
-                                                        disabled={uploadingFile}
-                                                        className="hidden"
-                                                    />
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-[13px] font-medium text-ink">
+                                                    Cover Letter *
                                                 </label>
-                                                {uploadingFile && (
-                                                    <span className="text-[12px] text-teal-600 animate-pulse">
-                                                        Uploading...
+                                                <textarea
+                                                    name="coverLetter"
+                                                    rows="4"
+                                                    value={proposalData.coverLetter}
+                                                    onChange={handleProposalChange}
+                                                    required
+                                                    placeholder="Why are you a good fit for this project?"
+                                                    className="w-full px-3 py-2 rounded-[8px] border border-cream-200 bg-brand-cream focus:bg-white focus:border-teal-600 outline-none text-[14px] text-ink resize-none transition-all"
+                                                />
+                                            </div>
+
+                                            <div className="p-3.5 border border-cream-200 rounded-[8px] bg-brand-cream flex flex-col gap-2.5">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[13px] font-semibold text-ink">
+                                                        Optional Milestones
                                                     </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={addMilestone}
+                                                        className="flex items-center gap-1 px-2.5 py-1 bg-brand-teal text-white rounded-[6px] text-[12px] font-medium hover:opacity-90 transition-opacity cursor-pointer border-0"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[15px]">add</span>
+                                                        Add
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex flex-col gap-2">
+                                                    <input
+                                                        type="text"
+                                                        name="title"
+                                                        placeholder="Milestone Title"
+                                                        value={milestone.title}
+                                                        onChange={handleMilestoneChange}
+                                                        className="w-full px-3 py-1.5 rounded-[8px] border border-cream-200 bg-white text-[13px] text-ink focus:border-teal-600 outline-none"
+                                                    />
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input
+                                                            type="number"
+                                                            name="amount"
+                                                            placeholder="Amount ($)"
+                                                            value={milestone.amount}
+                                                            onChange={handleMilestoneChange}
+                                                            className="w-full px-3 py-1.5 rounded-[8px] border border-cream-200 bg-white text-[13px] text-ink focus:border-teal-600 outline-none"
+                                                        />
+                                                        <input
+                                                            type="date"
+                                                            name="dueDate"
+                                                            value={milestone.dueDate}
+                                                            onChange={handleMilestoneChange}
+                                                            className="w-full px-3 py-1.5 rounded-[8px] border border-cream-200 bg-white text-[13px] text-ink focus:border-teal-600 outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {proposalData.milestones.length > 0 && (
+                                                    <div className="flex flex-col gap-1.5 mt-1 border-t border-cream-200 pt-2">
+                                                        {proposalData.milestones.map((m, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center justify-between p-2 bg-white rounded-[6px] border border-cream-200 text-[12px]"
+                                                            >
+                                                                <span className="text-ink">
+                                                                    {m.title} - ${m.amount}{" "}
+                                                                    <span className="text-teal-600 text-[11px]">
+                                                                        ({m.dueDate || "No date"})
+                                                                    </span>
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeMilestone(idx)}
+                                                                    className="text-brand-danger font-bold px-1.5 hover:opacity-80 cursor-pointer border-0 bg-transparent"
+                                                                >
+                                                                    ×
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 )}
                                             </div>
 
-                                            {proposalData.attachments.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5 mt-1">
-                                                    {proposalData.attachments.map((att) => (
-                                                        <span
-                                                            key={att.public_id}
-                                                            className="flex items-center gap-1 px-2.5 py-0.5 bg-brand-cream border border-cream-200 rounded-full text-[12px] text-teal-600"
-                                                        >
-                                                            {att.name}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeAttachment(att.public_id)}
-                                                                className="text-brand-danger font-bold ml-1 cursor-pointer"
-                                                            >
-                                                                ×
-                                                            </button>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[13px] font-medium text-ink">
+                                                    Attachments (Optional)
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    <label className="cursor-pointer px-3 py-1.5 border border-cream-200 rounded-[8px] bg-brand-cream hover:bg-cream-200 text-[13px] font-medium text-ink transition-colors">
+                                                        Choose File
+                                                        <input
+                                                            type="file"
+                                                            onChange={handleFileUpload}
+                                                            disabled={uploadingFile}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                    {uploadingFile && (
+                                                        <span className="text-[12px] text-teal-600 animate-pulse">
+                                                            Uploading...
                                                         </span>
-                                                    ))}
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
 
-                                        <button
-                                            type="submit"
-                                            disabled={submitting || uploadingFile}
-                                            className="w-full py-3 mt-1 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] font-semibold text-[14px] disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
-                                        >
-                                            {submitting ? "Submitting..." : "Submit Proposal"}
-                                        </button>
-                                    </form>
+                                                {proposalData.attachments.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1.5 mt-1">
+                                                        {proposalData.attachments.map((att) => (
+                                                            <span
+                                                                key={att.public_id}
+                                                                className="flex items-center gap-1 px-2.5 py-0.5 bg-brand-cream border border-cream-200 rounded-full text-[12px] text-teal-600"
+                                                            >
+                                                                {att.name}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeAttachment(att.public_id)}
+                                                                    className="text-brand-danger font-bold ml-1 cursor-pointer border-0 bg-transparent"
+                                                                >
+                                                                    ×
+                                                                </button>
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={submitting || uploadingFile}
+                                                className="w-full py-3 mt-1 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] font-semibold text-[14px] disabled:opacity-50 transition-colors shadow-xs cursor-pointer border-0"
+                                            >
+                                                {submitting ? "Submitting..." : "Submit Proposal"}
+                                            </button>
+                                        </form>
+                                    </div>
+                                )
+                            ) : (
+                                <div className="p-4 bg-brand-cream rounded-[8px] text-center border border-cream-200">
+                                    <p className="text-[14px] font-medium text-teal-600 m-0">
+                                        This job is not open for proposals.
+                                    </p>
                                 </div>
                             )
-                        ) : (
-                            <div className="p-4 bg-brand-cream rounded-[8px] text-center border border-cream-200">
-                                <p className="text-[14px] font-medium text-teal-600">
-                                    This job is not open for proposals.
+                        ) : !user ? (
+                            <div className="p-4 bg-brand-cream rounded-[8px] text-center space-y-4 border border-cream-200">
+                                <p className="text-[15px] text-ink font-normal m-0">
+                                    Want to apply for this project?
                                 </p>
+                                <Link
+                                    to="/sign-in"
+                                    className="inline-block w-full py-2.5 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] text-[14px] font-semibold transition-colors no-underline"
+                                >
+                                    Sign In as a Freelancer
+                                </Link>
                             </div>
-                        )
-                    ) : !user ? (
-                        <div className="p-4 bg-brand-cream rounded-[8px] text-center space-y-4 border border-cream-200">
-                            <p className="text-[15px] text-ink font-normal">
-                                Want to apply for this project?
-                            </p>
-                            <Link
-                                to="/sign-in"
-                                className="inline-block w-full py-2.5 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] text-[14px] font-semibold transition-colors no-underline"
+                        ) : null}
+                    </div>
+
+                    {!isOwner && user && (
+                        <div className="mt-4 text-center">
+                            <button 
+                                onClick={() => setIsReportModalOpen(true)} 
+                                className="text-gray-400 hover:text-brand-danger text-[13px] flex items-center justify-center gap-1.5 mx-auto bg-transparent border-0 cursor-pointer transition-colors"
                             >
-                                Sign In as a Freelancer
-                            </Link>
+                                <span className="material-symbols-outlined text-[16px]">flag</span> 
+                                Report this job
+                            </button>
                         </div>
-                    ) : null}
+                    )}
                 </div>
             </aside>
 
             {/* Incomplete Profile Prompt Modal (F-PRO-05) */}
             {showIncompleteModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-cream-200 text-center">
                         <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-amber-200">
                             ⚠️
@@ -650,6 +666,15 @@ const JobDetailsPage = ({ user }) => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {job && (
+                <ReportModal 
+                    isOpen={isReportModalOpen} 
+                    onClose={() => setIsReportModalOpen(false)} 
+                    targetType="Job" 
+                    targetId={job._id} 
+                />
             )}
         </div>
     )

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { searchFreelancers } from '../services/profile-service';
+import ReportModal from '../components/ReportModal';
 
 const FreelancerSearchPage = () => {
     const [freelancers, setFreelancers] = useState([])
@@ -12,6 +13,12 @@ const FreelancerSearchPage = () => {
     const [availability, setAvailability] = useState('')
     const [minRate, setMinRate] = useState('')
     const [maxRate, setMaxRate] = useState('')
+
+    const [reportModalData, setReportModalData] = useState({ isOpen: false, targetId: null })
+
+    const userStr = localStorage.getItem('user');
+    const currentUser = userStr ? JSON.parse(userStr) : null;
+    const isClient = currentUser?.role === 'client';
 
     const fetchTalent = async (page = 1) => {
         try {
@@ -152,10 +159,21 @@ const FreelancerSearchPage = () => {
                         return (
                             <div
                                 key={item._id}
-                                className="bg-white border border-cream-200 rounded-lg p-5 shadow-sm flex flex-col justify-between hover:border-brand-teal/50 transition"
+                                className="bg-white border border-cream-200 rounded-lg p-5 shadow-sm flex flex-col justify-between hover:border-brand-teal/50 transition relative"
                             >
+                                {isClient && currentUser._id !== userId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setReportModalData({ isOpen: true, targetId: userId })}
+                                        className="absolute top-4 right-4 text-gray-300 hover:text-brand-danger transition-colors cursor-pointer border-0 bg-transparent"
+                                        title="Report Freelancer"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">flag</span>
+                                    </button>
+                                )}
+
                                 <div>
-                                    <div className="flex items-start gap-3 mb-3">
+                                    <div className="flex items-start gap-3 mb-3 pr-6">
                                         <div className="w-12 h-12 rounded-full bg-cream-200 flex items-center justify-center font-bold text-brand-teal shrink-0 overflow-hidden text-base">
                                             {u.avatarUrl ? (
                                                 <img src={u.avatarUrl} alt={u.name} className="w-full h-full object-cover" />
@@ -227,6 +245,13 @@ const FreelancerSearchPage = () => {
                     </button>
                 </div>
             )}
+
+            <ReportModal 
+                isOpen={reportModalData.isOpen}
+                onClose={() => setReportModalData({ isOpen: false, targetId: null })}
+                targetType="User"
+                targetId={reportModalData.targetId}
+            />
         </div>
     )
 }
