@@ -22,9 +22,22 @@ const updateClientProfile = async (profileData) => {
     return res.data?.data?.profile || res.data?.profile || res.data
 }
 
+// Public Profile Lookups
+const getPublicFreelancerProfile = async (userId) => {
+    const res = await axiosInstance.get(`/profile/freelancer/${userId}`)
+    return res.data?.data?.profile || res.data?.profile || res.data
+}
+
+const getPublicClientProfile = async (userId) => {
+    const res = await axiosInstance.get(`/profile/client/${userId}`)
+    return res.data?.data?.profile || res.data?.profile || res.data
+}
+
 export {
     getMyFreelancerProfile,
     updateFreelancerProfile,
     updateClientProfile,
-    getMyClientProfile
+    getMyClientProfile,
+    getPublicClientProfile,
+    getPublicFreelancerProfile,
 }

@@ -20,6 +20,8 @@ import JobFormPage from "./pages/JobFormPage"
 import JobProposalsPage from "./pages/JobProposalsPage"
 import MyProposalsPage from "./pages/MyProposalsPage"
 import ProfileEditorPage from "./pages/ProfileEditorPage"
+import PublicFreelancerProfilePage from './pages/PublicFreelancerProfilePage'
+import PublicClientProfilePage from './pages/PublicClientProfilePage'
 // End of Hasan's
 
 const getUserFromToken = () => {
@@ -53,6 +55,8 @@ const App = () => {
           {/* Profile Routes */}
           <Route path="/freelancer/profile" element={<ProfileEditorPage user={user} />} />
           <Route path="/client/profile" element={<ProfileEditorPage user={user} />} />
+          <Route path="/freelancers/:userId" element={<PublicFreelancerProfilePage />} />
+          <Route path="/clients/:userId" element={<PublicClientProfilePage />} />
 
           {/* Contract Routes */}
 
@@ -63,7 +67,7 @@ const App = () => {
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:jobId" element={<JobDetailsPage user={user} />} />
 
-          {/* Client Job & Proposal Management (Spec Section 11) */}
+          {/* Client Job & Proposal Management */}
           <Route path="/client/jobs" element={<ClientJobsPage user={user} />} />
           <Route path="/client/jobs/new" element={<JobFormPage />} />
           <Route path="/client/jobs/:jobId/edit" element={<JobFormPage />} />
@@ -71,7 +75,7 @@ const App = () => {
 
 
           {/* Proposal Routes */}
-          {/* Freelancer Proposals Management (Spec Section 11) */}
+          {/* Freelancer Proposals Management */}
           <Route path="/freelancer/proposals" element={<MyProposalsPage user={user} />} />
 
           {/* Messages Routes */}
