@@ -2,25 +2,20 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router"
 import { getFreelancerProfile, getClientProfile } from "../services/profile"
 
-const Profile = function (props)
-{
+const Profile = function (props) {
     const [profileData, setProfileData] = useState(null)
     const [loading, setLoading] = useState(true)
 
     const userRole = props.user?.role || 'freelancer'
 
     useEffect(() => {
-        const fetchProfile = async function ()
-        {
-            if (props.user)
-            {
+        const fetchProfile = async function () {
+            if (props.user) {
                 let data = null
 
-                if (userRole === 'client')
-                {
+                if (userRole === 'client') {
                     data = await getClientProfile()
-                } else
-                {
+                } else {
                     data = await getFreelancerProfile()
                 }
 
@@ -53,8 +48,8 @@ const Profile = function (props)
                     <div className="relative flex justify-between items-center mb-6">
                         <div className="flex items-center gap-4">
 
-                            <Link 
-                                to="/settings" 
+                            <Link
+                                to="/settings"
                                 title="Change Profile Picture"
                                 className="-mt-12 h-24 w-24 rounded-full border-4 border-white bg-cream-200 flex items-center justify-center text-brand-teal text-3xl font-bold shadow-sm shrink-0 overflow-hidden group relative cursor-pointer"
                             >
@@ -63,7 +58,7 @@ const Profile = function (props)
                                 ) : (
                                     <span>{props.user?.name ? props.user.name.charAt(0).toUpperCase() : 'U'}</span>
                                 )}
-                                
+
                                 <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center transition-colors">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
@@ -71,13 +66,13 @@ const Profile = function (props)
                                     </svg>
                                 </div>
                             </Link>
-                            
+
                             <div className="pt-3">
                                 <h1 className="text-2xl font-bold text-ink m-0 leading-none mb-1.5">{props.user?.name || props.user?.username || 'User Name'}</h1>
                                 <p className="text-sm text-teal-600 m-0 capitalize">{userRole}</p>
                             </div>
                         </div>
-                        
+
                         <Link to="/profile/edit" className="mt-2 px-5 py-2.5 bg-accent-sand text-brand-teal font-semibold rounded-lg border-0 cursor-pointer hover:opacity-90 transition-opacity no-underline text-sm">
                             Edit Profile Details
                         </Link>

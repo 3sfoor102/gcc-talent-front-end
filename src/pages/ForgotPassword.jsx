@@ -49,7 +49,7 @@ const ForgotPassword = () => {
                         {loading ? 'Sending...' : 'Send Reset Link'}
                     </button>
                 </form>
-                
+
                 <div className="mt-6 text-center">
                     <Link to="/sign-in" className="text-sm font-medium text-teal-600 hover:underline">Back to Login</Link>
                 </div>
