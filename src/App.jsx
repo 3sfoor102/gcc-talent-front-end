@@ -21,8 +21,8 @@ import ManageCategories from "./pages/ManageCategories";
 import ManageReports from "./pages/ManageReports";
 
 // Ali Alasfoor's imports
-
-
+import ContractsPage from "./pages/ContractsPage";
+import ContractWorkspacePage from "./pages/ContractWorkspacePage";
 
 // Hasan Ali's imports
 import JobsPage from "./pages/Jobs";
@@ -69,7 +69,7 @@ const App = () => {
           {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         const responseData = await res.json();
@@ -237,6 +237,23 @@ const App = () => {
             }
           />
 
+          {/* Contracts & Workspace Routes */}
+          <Route
+            path="/contracts"
+            element={
+              <ProtectedRoute user={user}>
+                <ContractsPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contracts/:contractId"
+            element={
+              <ProtectedRoute user={user}>
+                <ContractWorkspacePage user={user} />
+              </ProtectedRoute>
+            }
+          />
           {/* Client-Only Routes */}
           <Route
             path="/client/profile"
