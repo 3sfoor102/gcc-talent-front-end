@@ -1,10 +1,8 @@
 import { Link } from "react-router"
 import logo from "../assets/logo.png"
 
-const Nav = function (props)
-{
-    const handleSignOut = function ()
-    {
+const Nav = function (props) {
+    const handleSignOut = function () {
         localStorage.removeItem('token')
         props.setUser(null)
     }
@@ -59,6 +57,14 @@ const Nav = function (props)
                         </li>
                         <li>
                             <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/">Dashboard</Link>
+                        </li>
+                        <li>
+                            <Link
+                                className="text-sm font-medium text-cream-200 hover:text-white no-underline"
+                                to={isFreelancer ? "/freelancer/profile" : "/client/profile"}
+                            >
+                                Profile
+                            </Link>
                         </li>
                         <li>
                             <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/settings">Settings</Link>

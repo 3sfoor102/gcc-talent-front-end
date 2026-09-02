@@ -19,6 +19,7 @@ import ClientJobsPage from "./pages/ClientJobsPage"
 import JobFormPage from "./pages/JobFormPage"
 import JobProposalsPage from "./pages/JobProposalsPage"
 import MyProposalsPage from "./pages/MyProposalsPage"
+import ProfileEditorPage from "./pages/ProfileEditorPage"
 // End of Hasan's
 
 const getUserFromToken = () => {
@@ -50,6 +51,8 @@ const App = () => {
           <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
 
           {/* Profile Routes */}
+          <Route path="/freelancer/profile" element={<ProfileEditorPage user={user} />} />
+          <Route path="/client/profile" element={<ProfileEditorPage user={user} />} />
 
           {/* Contract Routes */}
 
