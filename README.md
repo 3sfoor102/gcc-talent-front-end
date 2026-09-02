@@ -2,12 +2,10 @@
 
 A robust, enterprise-grade digital freelance marketplace engineered to connect businesses and clients across the Gulf region with vetted professionals. Functioning on a dual-sided marketplace model (similar to Upwork and Fiverr), the platform supports job postings, proposal bidding, custom milestone agreements, and direct communication. Financial integrity is enforced through a simulated escrow and wallet system powered by atomic database transactions.
 
-![GCC Talent Marketplace Landing and Dashboard](public/marketplace-banner.png)
+![GCC Talent Marketplace Landing and Dashboard](src/public//marketplace-banner.jpeg)
 
 ### Live Demo & Planning
-* **[Live Application](https://your-deployment-link.com)**
-* **[API Documentation (Swagger UI)](http://localhost:3000/api/docs)**
-* **[Project Planning Material](https://trello.com/b/your-board-link)**
+* **[Project Planning Material](https://trello.com/b/RRuEklHK/gcc-talent)**
 
 ---
 
