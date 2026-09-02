@@ -104,32 +104,47 @@ const JobProposalsPage = ({ user }) => {
             ) : (
                 <div className="space-y-4">
                     {proposals.map((prop) => {
-                        const freelancer = prop.freelancer || {}
-                        const freelancerId = freelancer._id || freelancer.id
+                        const rawFreelancer = prop.freelancer
+                        const freelancerObj = typeof rawFreelancer === "object" && rawFreelancer !== null ? rawFreelancer : {}
+
+                        const freelancerId =
+                            freelancerObj._id ||
+                            freelancerObj.id ||
+                            freelancerObj.user?._id ||
+                            freelancerObj.user ||
+                            (typeof rawFreelancer === "string" ? rawFreelancer : null)
+
+                        const freelancerName = freelancerObj.name || freelancerObj.user?.name || "Freelancer"
+                        const avatarUrl = freelancerObj.avatarUrl || freelancerObj.user?.avatarUrl
 
                         return (
                             <div key={prop._id} className="bg-white border border-cream-200 rounded-lg p-5 shadow-xs flex flex-col md:flex-row justify-between gap-6">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <div className="w-10 h-10 rounded-full bg-cream-200 flex items-center justify-center font-bold text-brand-teal shrink-0 overflow-hidden text-sm">
-                                            {freelancer.avatarUrl ? (
-                                                <img src={freelancer.avatarUrl} alt={freelancer.name} className="w-full h-full object-cover" />
+                                        <div className="w-10 h-10 rounded-full bg-cream-200 flex items-center justify-center font-bold text-brand-teal shrink-0 overflow-hidden text-sm border border-cream-200">
+                                            {avatarUrl ? (
+                                                <img src={avatarUrl} alt={freelancerName} className="w-full h-full object-cover" />
                                             ) : (
-                                                freelancer.name?.charAt(0) || "F"
+                                                freelancerName.charAt(0).toUpperCase()
                                             )}
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <Link to={`/freelancers/${freelancerId}`} className="font-bold text-sm text-ink hover:underline">
-                                                    {freelancer.name || "Freelancer"}
-                                                </Link>
+                                                {freelancerId ? (
+                                                    <Link to={`/freelancers/${freelancerId}`} className="font-bold text-sm text-ink hover:underline">
+                                                        {freelancerName}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="font-bold text-sm text-ink">{freelancerName}</span>
+                                                )}
+
                                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${prop.status === "accepted"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : prop.status === "shortlisted"
-                                                        ? "bg-amber-100 text-amber-700"
-                                                        : prop.status === "declined"
-                                                            ? "bg-red-100 text-red-700"
-                                                            : "bg-slate-100 text-gray-600"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : prop.status === "shortlisted"
+                                                            ? "bg-amber-100 text-amber-700"
+                                                            : prop.status === "declined"
+                                                                ? "bg-red-100 text-red-700"
+                                                                : "bg-slate-100 text-gray-600"
                                                     }`}>
                                                     {prop.status}
                                                 </span>
@@ -164,14 +179,22 @@ const JobProposalsPage = ({ user }) => {
                                     </div>
 
                                     <div className="flex flex-col gap-2 w-full sm:w-auto">
-                                        {/* Direct message launch */}
-                                        <Link
-                                            to={`/messages?userId=${freelancerId}&jobId=${jobId}`}
-                                            className="px-4 py-2 bg-brand-cream border border-cream-200 hover:bg-cream-200 text-ink text-xs font-semibold rounded-md text-center no-underline transition-colors flex items-center justify-center gap-1"
-                                        >
-                                            <span className="material-symbols-outlined text-[16px]">chat</span>
-                                            Message
-                                        </Link>
+                                        {freelancerId ? (
+                                            <Link
+                                                to={`/messages?userId=${freelancerId}&jobId=${jobId}`}
+                                                className="px-4 py-2 bg-brand-cream border border-cream-200 hover:bg-cream-200 text-ink text-xs font-semibold rounded-md text-center no-underline transition-colors flex items-center justify-center gap-1"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">chat</span>
+                                                Message
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                disabled
+                                                className="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-semibold rounded-md text-center cursor-not-allowed border border-gray-200"
+                                            >
+                                                Message Unavailable
+                                            </button>
+                                        )}
 
                                         {prop.status !== "accepted" && prop.status !== "declined" && (
                                             <>
