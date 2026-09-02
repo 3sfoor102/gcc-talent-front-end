@@ -20,9 +20,15 @@ const sendMessage = async (conversationId, messageData) => {
     return res.data?.data || res.data
 }
 
+const markAsRead = async (conversationId) => {
+    const res = await axiosInstance.post(`/conversations/${conversationId}/read`)
+    return res.data?.data || res.data
+}
+
 export {
     startConversation,
     getConversations,
     getMessages,
-    sendMessage
+    sendMessage,
+    markAsRead
 }
