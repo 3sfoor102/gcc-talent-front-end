@@ -1,0 +1,345 @@
+import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getContractById,
+  fundMilestone,
+  deliverMilestone,
+  approveMilestone
+} from '../services/contracts-service';
+
+export const ContractPage = () => {
+  const { id: contractId } = useParams();
+  const queryClient = useQueryClient();
+
+  const [activeDeliveryMid, setActiveDeliveryMid] = useState(null);
+  const [deliveryMessage, setDeliveryMessage] = useState('');
+  const [deliveryAttachment, setDeliveryAttachment] = useState('');
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['contract', contractId],
+    queryFn: () => getContractById(contractId),
+    enabled: Boolean(contractId)
+  });
+
+  const contract = data?.data;
+
+  const userRole = localStorage.getItem('role') || 'client';
+  const currentUserId = localStorage.getItem('userId');
+
+  const syncWorkspace = () => {
+    queryClient.invalidateQueries({ queryKey: ['contract', contractId] });
+    queryClient.invalidateQueries({ queryKey: ['wallet'] });
+  };
+
+  const fundMutation = useMutation({
+    mutationFn: (mid) => fundMilestone(contractId, mid),
+    onSuccess: syncWorkspace,
+    onError: (err) => alert(err.message)
+  });
+
+  const deliverMutation = useMutation({
+    mutationFn: ({ mid, payload }) => deliverMilestone(contractId, mid, payload),
+    onSuccess: () => {
+      setActiveDeliveryMid(null);
+      setDeliveryMessage('');
+      setDeliveryAttachment('');
+      syncWorkspace();
+    },
+    onError: (err) => alert(err.message)
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (mid) => approveMilestone(contractId, mid),
+    onSuccess: syncWorkspace,
+    onError: (err) => alert(err.message)
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F0E9] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-[#224548] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[#1F2A2B] font-medium">Loading contract workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !contract) {
+    return (
+      <div className="min-h-screen bg-[#F7F0E9] flex items-center justify-center p-6">
+        <div className="bg-white border border-[#EFE4D8] rounded-xl p-8 max-w-md text-center shadow-sm">
+          <span className="material-symbols-outlined text-4xl text-[#9B3B3B] mb-2">error</span>
+          <h2 className="text-xl font-semibold text-[#1F2A2B] mb-2">Workspace Unavailable</h2>
+          <p className="text-sm text-gray-600 mb-6">{error?.message || 'Unable to retrieve contract details.'}</p>
+          <Link to="/contracts" className="px-5 py-2.5 bg-[#224548] text-[#F7F0E9] rounded-lg font-medium hover:bg-[#1A3638]">
+            Back to Contracts
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const isClient = userRole === 'client' || contract.client?._id === currentUserId;
+  const isFreelancer = userRole === 'freelancer' || contract.freelancer?._id === currentUserId;
+
+  const handleDeliverySubmit = (e, mid) => {
+    e.preventDefault();
+    if (!deliveryMessage.trim()) return;
+    deliverMutation.mutate({
+      mid,
+      payload: {
+        message: deliveryMessage,
+        attachments: deliveryAttachment ? [{ name: 'Deliverable', url: deliveryAttachment }] : []
+      }
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F7F0E9] text-[#1F2A2B] flex flex-col font-sans">
+      <div className="flex flex-1 max-w-[1280px] w-full mx-auto">
+        <aside className="w-64 min-h-[calc(100vh-4rem)] bg-white border-r border-[#EFE4D8] hidden lg:flex flex-col gap-6 py-6 px-4 sticky top-16">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-12 h-12 rounded-lg bg-[#F7F0E9] flex items-center justify-center text-[#224548]">
+              <span className="material-symbols-outlined text-2xl">work</span>
+            </div>
+            <div className="overflow-hidden">
+              <h2 className="font-semibold text-[#224548] text-base leading-tight truncate w-36" title={contract.title}>
+                {contract.title}
+              </h2>
+              <p className="text-xs text-gray-500 capitalize">{contract.source?.type || 'Fixed-Price'} Contract</p>
+            </div>
+          </div>
+
+          <nav className="flex flex-col gap-1.5 flex-1">
+            <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#224548] text-[#F7F0E9] font-medium text-sm text-left">
+              <span className="material-symbols-outlined text-sm">format_list_bulleted</span>
+              <span>Milestones</span>
+            </button>
+            <Link to="/wallet" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-[#F7F0E9] text-sm font-medium">
+              <span className="material-symbols-outlined text-sm">payments</span>
+              <span>Payments</span>
+            </Link>
+            <Link to={`/messages?contract=${contract._id}`} className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-[#F7F0E9] text-sm font-medium">
+              <span className="material-symbols-outlined text-sm">chat</span>
+              <span>Messages</span>
+            </Link>
+          </nav>
+
+          <div className="p-3 bg-[#F7F0E9] rounded-lg border border-[#EFE4D8]">
+            <p className="text-xs text-gray-600">Contract State</p>
+            <p className="text-sm font-semibold capitalize text-[#224548]">{contract.status}</p>
+          </div>
+        </aside>
+
+        <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+          <header className="mb-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-[#224548] mb-1">{contract.title}</h1>
+                <p className="text-sm text-gray-600">Manage deliverables and escrow releases across milestones.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white border border-[#EFE4D8] rounded-xl p-6 shadow-sm flex flex-col justify-between">
+                <div className="text-sm font-medium text-gray-500 mb-2 flex justify-between items-center">
+                  <span>Contract Status</span>
+                  <span className="material-symbols-outlined text-gray-400">info</span>
+                </div>
+                <div className="flex items-center gap-2 mt-auto">
+                  <div className={`w-3 h-3 rounded-full ${contract.status === 'completed' ? 'bg-[#2F7D6D]' : 'bg-[#C9A77C]'}`}></div>
+                  <span className="text-xl font-bold text-[#224548] capitalize">{contract.status}</span>
+                </div>
+                <div className="mt-3 inline-block px-3 py-1 bg-[#F7F0E9] text-gray-700 rounded-full text-xs font-medium w-max border border-[#EFE4D8]">
+                  {contract.milestones?.filter(m => m.status === 'approved').length} of {contract.milestones?.length || 0} Milestones Paid
+                </div>
+              </div>
+
+              <div className="bg-white border border-[#EFE4D8] rounded-xl p-6 shadow-sm flex flex-col justify-between">
+                <div className="text-sm font-medium text-gray-500 mb-2 flex justify-between items-center">
+                  <span>Total Agreed Value</span>
+                  <span className="material-symbols-outlined text-gray-400">account_balance_wallet</span>
+                </div>
+                <div className="text-2xl font-bold text-[#224548] mt-auto">
+                  ${Number(contract.totalAmount || 0).toLocaleString()}<span className="text-sm font-normal text-gray-500">.00</span>
+                </div>
+                <div className="mt-3 text-xs text-gray-500 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-xs text-[#2F7D6D]">verified_user</span>
+                  Escrow Protected Architecture
+                </div>
+              </div>
+
+              <div className="bg-white border border-[#EFE4D8] rounded-xl p-6 shadow-sm">
+                <div className="text-sm font-medium text-gray-500 mb-4 flex justify-between items-center">
+                  <span>Participants</span>
+                  <span className="material-symbols-outlined text-gray-400">group</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={contract.client?.avatarUrl || `https://ui-avatars.com/api/?name=${contract.client?.name || 'Client'}&background=224548&color=F7F0E9`}
+                      alt="Client"
+                      className="w-9 h-9 rounded-full object-cover border border-[#EFE4D8]"
+                    />
+                    <div>
+                      <div className="text-sm font-semibold text-[#1F2A2B]">{contract.client?.name}</div>
+                      <div className="text-xs text-gray-500">Client</div>
+                    </div>
+                  </div>
+                  <div className="h-[1px] w-full bg-[#EFE4D8]"></div>
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={contract.freelancer?.avatarUrl || `https://ui-avatars.com/api/?name=${contract.freelancer?.name || 'Freelancer'}&background=C9A77C&color=1F2A2B`}
+                      alt="Freelancer"
+                      className="w-9 h-9 rounded-full object-cover border border-[#EFE4D8]"
+                    />
+                    <div>
+                      <div className="text-sm font-semibold text-[#1F2A2B]">{contract.freelancer?.name}</div>
+                      <div className="text-xs text-gray-500">Freelancer</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <section>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[#224548]">Milestone Breakdown</h2>
+            </div>
+
+            <div className="bg-white border border-[#EFE4D8] rounded-xl overflow-hidden shadow-sm">
+              <div className="grid grid-cols-12 gap-4 p-4 border-b border-[#EFE4D8] bg-[#F7F0E9]/50 text-xs font-semibold text-gray-600 uppercase">
+                <div className="col-span-5 pl-2">Description</div>
+                <div className="col-span-2 text-right">Amount</div>
+                <div className="col-span-2 pl-4">Status</div>
+                <div className="col-span-3 text-right pr-2">Action</div>
+              </div>
+
+              {contract.milestones?.map((milestone, idx) => {
+                const isFunded = milestone.status === 'funded';
+                const isDelivered = milestone.status === 'delivered';
+                const isApproved = milestone.status === 'approved';
+                const isPending = milestone.status === 'pending';
+
+                return (
+                  <div key={milestone._id || idx} className="border-b border-[#EFE4D8] last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                    <div className="grid grid-cols-12 gap-4 p-4 items-center">
+                      <div className="col-span-5 flex flex-col gap-1 pl-2">
+                        <span className="text-sm font-semibold text-[#224548]">
+                          {idx + 1}. {milestone.title}
+                        </span>
+                        <span className="text-xs text-gray-500 line-clamp-1">{milestone.description}</span>
+                      </div>
+
+                      <div className="col-span-2 text-right text-sm font-medium text-[#1F2A2B]">
+                        ${milestone.amount?.toFixed(2)}
+                      </div>
+
+                      <div className="col-span-2 pl-4">
+                        {isApproved && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#2F7D6D]/10 text-[#2F7D6D] text-xs font-semibold">
+                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                            Approved
+                          </span>
+                        )}
+                        {isDelivered && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#B58A4A]/10 text-[#B58A4A] text-xs font-semibold">
+                            <span className="material-symbols-outlined text-[14px]">visibility</span>
+                            Delivered
+                          </span>
+                        )}
+                        {isFunded && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#224548]/10 text-[#224548] text-xs font-semibold">
+                            <span className="material-symbols-outlined text-[14px]">lock</span>
+                            In Escrow
+                          </span>
+                        )}
+                        {isPending && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-dashed border-gray-300 text-gray-500 text-xs font-semibold">
+                            Pending
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="col-span-3 text-right pr-2 flex justify-end items-center gap-2">
+                        {isClient && isPending && (
+                          <button
+                            onClick={() => fundMutation.mutate(milestone._id)}
+                            disabled={fundMutation.isPending}
+                            className="bg-[#224548] text-[#F7F0E9] hover:bg-[#1A3638] px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                          >
+                            Fund Escrow
+                          </button>
+                        )}
+
+                        {isClient && isDelivered && (
+                          <button
+                            onClick={() => approveMutation.mutate(milestone._id)}
+                            disabled={approveMutation.isPending}
+                            className="bg-[#2F7D6D] text-white hover:bg-[#256357] px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                          >
+                            Approve Release
+                          </button>
+                        )}
+
+                        {isFreelancer && isFunded && (
+                          <button
+                            onClick={() => setActiveDeliveryMid(activeDeliveryMid === milestone._id ? null : milestone._id)}
+                            className="bg-[#C9A77C] text-[#1F2A2B] hover:bg-[#b89569] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            Submit Work
+                          </button>
+                        )}
+
+                        {isApproved && <span className="text-xs text-gray-400 font-medium px-2 py-1">Released</span>}
+                      </div>
+                    </div>
+
+                    {activeDeliveryMid === milestone._id && isFreelancer && (
+                      <form onSubmit={(e) => handleDeliverySubmit(e, milestone._id)} className="p-4 bg-[#F7F0E9] border-t border-[#EFE4D8] flex flex-col gap-3">
+                        <textarea
+                          value={deliveryMessage}
+                          onChange={(e) => setDeliveryMessage(e.target.value)}
+                          placeholder="Provide delivery summary, links, and instructions..."
+                          required
+                          className="w-full text-xs p-3 border border-[#EFE4D8] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#224548]"
+                          rows={3}
+                        />
+                        <input
+                          type="url"
+                          value={deliveryAttachment}
+                          onChange={(e) => setDeliveryAttachment(e.target.value)}
+                          placeholder="Attachment or Artifact URL (e.g. Figma, GitHub, Drive)"
+                          className="w-full text-xs p-2.5 border border-[#EFE4D8] rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-[#224548]"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveDeliveryMid(null)}
+                            className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-[#EFE4D8] rounded-lg"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={deliverMutation.isPending}
+                            className="px-4 py-1.5 text-xs font-medium text-white bg-[#224548] rounded-lg hover:bg-[#1A3638]"
+                          >
+                            {deliverMutation.isPending ? 'Submitting...' : 'Confirm Delivery'}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+};
