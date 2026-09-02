@@ -18,4 +18,20 @@ axiosInstance.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+            
+            const errorMsg = error.response.data?.err || error.response.data?.message;
+            
+            if (errorMsg === 'Account suspended' || errorMsg === 'Your account has been suspended.') {
+                localStorage.removeItem('token');
+                window.location.href = '/sign-in';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default axiosInstance;

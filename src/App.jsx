@@ -12,52 +12,54 @@ import { ProtectedRoute, GuestRoute } from "./components/ProtectedRoute";
 import "./App.css";
 
 // Ali Saleh's imports
-import Settings from "./components/Settings"
-import Profile from "./components/Profile"
-import EditProfile from "./components/EditProfile"
+import Settings from "./components/Settings";
+import Profile from "./components/Profile";
+import EditProfile from "./components/EditProfile";
 import ManageUsers from "./pages/ManageUsers";
+import ManageCategories from "./pages/ManageCategories";
+import ManageReports from "./pages/ManageReports";
 
 // Ali Alasfoor's imports
 
 
 
 // Hasan Ali's imports
-import JobsPage from "./pages/Jobs"
-import JobDetailsPage from "./pages/JobDetailsPage"
-import ClientJobsPage from "./pages/ClientJobsPage"
-import JobFormPage from "./pages/JobFormPage"
-import JobProposalsPage from "./pages/JobProposalsPage"
-import MyProposalsPage from "./pages/MyProposalsPage"
-import ProfileEditorPage from "./pages/ProfileEditorPage"
-import PublicFreelancerProfilePage from "./pages/PublicFreelancerProfilePage"
-import PublicClientProfilePage from "./pages/PublicClientProfilePage"
-import FreelancerSearchPage from "./pages/FreelancerSearchPage"
-import MessagesPage from "./pages/MessagesPage"
+import JobsPage from "./pages/Jobs";
+import JobDetailsPage from "./pages/JobDetailsPage";
+import ClientJobsPage from "./pages/ClientJobsPage";
+import JobFormPage from "./pages/JobFormPage";
+import JobProposalsPage from "./pages/JobProposalsPage";
+import MyProposalsPage from "./pages/MyProposalsPage";
+import ProfileEditorPage from "./pages/ProfileEditorPage";
+import PublicFreelancerProfilePage from "./pages/PublicFreelancerProfilePage";
+import PublicClientProfilePage from "./pages/PublicClientProfilePage";
+import FreelancerSearchPage from "./pages/FreelancerSearchPage";
+import MessagesPage from "./pages/MessagesPage";
 // End of Hasan's
 
 const getUserFromToken = () => {
-  const token = localStorage.getItem("token")
-  if (!token) return null
+  const token = localStorage.getItem("token");
+  if (!token) return null;
 
   try {
-    const decoded = JSON.parse(atob(token.split(".")[1]))
-    return decoded.payload || decoded.user || decoded
+    const decoded = JSON.parse(atob(token.split(".")[1]));
+    return decoded.payload || decoded.user || decoded;
   } catch (err) {
-    return null
+    return null;
   }
-}
+};
 
 const App = () => {
-  const [user, setUser] = useState(getUserFromToken())
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(getUserFromToken());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const verifySession = async function () {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token");
 
       if (!token) {
-        setLoading(false)
-        return
+        setLoading(false);
+        return;
       }
 
       try {
@@ -67,36 +69,36 @@ const App = () => {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           }
-        )
+        );
 
-        const responseData = await res.json()
+        const responseData = await res.json();
 
         if (res.ok) {
           const rawUser =
-            responseData.data?.user || responseData.user || responseData
+            responseData.data?.user || responseData.user || responseData;
           if (rawUser) {
             const formattedUser = {
               ...rawUser,
               id: rawUser.id || rawUser._id,
               role: rawUser.role || "freelancer",
-            }
-            setUser(formattedUser)
+            };
+            setUser(formattedUser);
           }
         } else {
-          localStorage.removeItem("token")
-          setUser(null)
+          localStorage.removeItem("token");
+          setUser(null);
         }
       } catch (err) {
-        console.error("Session verification failed:", err)
-        localStorage.removeItem("token")
-        setUser(null)
+        console.error("Session verification failed:", err);
+        localStorage.removeItem("token");
+        setUser(null);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    verifySession()
-  }, [])
+    verifySession();
+  }, []);
 
   if (loading) {
     return (
@@ -105,7 +107,7 @@ const App = () => {
           Loading session...
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -159,6 +161,22 @@ const App = () => {
             element={
               <ProtectedRoute user={user} allowedRoles={["admin"]}>
                 <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["admin"]}>
+                <ManageCategories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["admin"]}>
+                <ManageReports />
               </ProtectedRoute>
             }
           />
@@ -275,7 +293,7 @@ const App = () => {
         </Routes>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
