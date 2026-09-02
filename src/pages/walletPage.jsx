@@ -6,8 +6,11 @@ export const WalletPage = () => {
   const queryClient = useQueryClient();
 
   const [activeModal, setActiveModal] = useState(null);
-  const [amount, setAmount] = useState('');
-  const [card, setCard] = useState('4242424242424242');
+  const [amount, setAmount] = useState('500');
+  const [cardholderName, setCardholderName] = useState('');
+  const [cardNumber, setCardNumber] = useState('4242 4242 4242 4242');
+  const [expiry, setExpiry] = useState('12/28');
+  const [cvc, setCvc] = useState('123');
   const [filterType, setFilterType] = useState('All');
   const [actionError, setActionError] = useState(null);
 
@@ -45,7 +48,11 @@ export const WalletPage = () => {
 
   const closeModal = () => {
     setActiveModal(null);
-    setAmount('');
+    setAmount('500');
+    setCardholderName('');
+    setCardNumber('4242 4242 4242 4242');
+    setExpiry('12/28');
+    setCvc('123');
     setActionError(null);
   };
 
@@ -55,7 +62,12 @@ export const WalletPage = () => {
       setActionError('Please enter a valid deposit amount.');
       return;
     }
-    handleDeposit({ amount: Number(amount), card });
+    const cleanCard = cardNumber.replace(/\s+/g, '');
+    if (cleanCard.startsWith('4000')) {
+      setActionError('Payment Declined: Insufficient funds or invalid card.');
+      return;
+    }
+    handleDeposit({ amount: Number(amount), card: cleanCard });
   };
 
   const onWithdrawSubmit = (e) => {
@@ -109,7 +121,7 @@ export const WalletPage = () => {
         </div>
         <button
           onClick={() => setActiveModal('deposit')}
-          className="flex items-center justify-center gap-2 rounded-lg bg-brand-teal px-5 py-2.5 font-medium text-white transition hover:bg-teal-900 cursor-pointer border-0"
+          className="flex items-center justify-center gap-2 rounded-lg bg-brand-teal px-5 py-2.5 font-medium text-white transition hover:bg-teal-900 cursor-pointer border-0 shadow-xs"
         >
           <span className="material-symbols-outlined text-sm">add_card</span>
           Add Funds
@@ -127,7 +139,7 @@ export const WalletPage = () => {
           <div className="flex justify-end">
             <button
               onClick={() => setActiveModal('withdraw')}
-              className="flex items-center gap-2 rounded-lg bg-accent-sand px-5 py-2 text-sm font-medium text-brand-teal transition hover:opacity-90 cursor-pointer border-0"
+              className="flex items-center gap-2 rounded-lg bg-accent-sand px-5 py-2 text-sm font-medium text-brand-teal transition hover:opacity-90 cursor-pointer border-0 shadow-xs"
             >
               <span className="material-symbols-outlined text-[18px]">account_balance</span>
               Withdraw Funds
@@ -233,60 +245,166 @@ export const WalletPage = () => {
         </div>
       </section>
 
+      {/* MODALS */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-cream-200 animate-fadeIn">
-            <div className="flex items-center justify-between pb-4 border-b border-cream-100">
-              <h3 className="text-lg font-bold text-ink m-0">
-                {activeModal === 'deposit' ? 'Add Funds (Mock Gateway)' : 'Withdraw Funds'}
-              </h3>
-              <button onClick={closeModal} className="text-gray-400 hover:text-ink cursor-pointer border-0 bg-transparent">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            {actionError && (
-              <div className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-brand-danger border border-red-200 font-medium">
-                {actionError}
-              </div>
-            )}
-
-            {activeModal === 'deposit' ? (
-              <form onSubmit={onDepositSubmit} className="mt-4 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
+          {activeModal === 'deposit' ? (
+            /* Compact Checkout Modal */
+            <div className="w-full max-w-md bg-white rounded-2xl border border-cream-200 shadow-2xl overflow-hidden animate-fadeIn my-4">
+              
+              {/* Header Title Bar */}
+              <div className="px-5 py-4 border-b border-cream-100 flex items-center justify-between">
                 <div>
-                  <label className="block text-xs font-semibold text-ink mb-1">Amount (USD)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="any"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="e.g. 500"
-                    required
-                    className="w-full rounded-lg border border-cream-200 bg-brand-cream p-2.5 text-xs focus:bg-white focus:border-brand-teal outline-none"
-                  />
+                  <h2 className="text-lg font-bold text-ink leading-tight m-0">Fund Escrow</h2>
+                  <p className="text-[11px] text-teal-600 m-0 mt-0.5">Securely deposit funds into your account wallet.</p>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-ink mb-1">Mock Card Preset</label>
-                  <select
-                    value={card}
-                    onChange={(e) => setCard(e.target.value)}
-                    className="w-full rounded-lg border border-cream-200 bg-brand-cream p-2.5 text-xs focus:bg-white focus:border-brand-teal outline-none"
+                <div className="flex items-center gap-2">
+                  <div className="bg-[#ffddb4] text-[#291800] px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[12px]">shield</span>
+                    Escrow Protected
+                  </div>
+                  <button 
+                    onClick={closeModal} 
+                    className="text-gray-400 hover:text-ink cursor-pointer border-0 bg-transparent flex items-center p-0.5 ml-1"
                   >
-                    <option value="4242424242424242">4242 4242 4242 4242 (Always Succeeds)</option>
-                    <option value="4000000000000002">4000 0000 0000 0002 (Declined - 402)</option>
-                    <option value="4000000000009995">4000 0000 0000 9995 (Insufficient Funds - 402)</option>
-                  </select>
+                    <span className="material-symbols-outlined text-lg">close</span>
+                  </button>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isDepositing}
-                  className="w-full rounded-lg bg-brand-teal py-3 text-xs font-bold text-white transition hover:bg-teal-900 disabled:opacity-50 cursor-pointer border-0 shadow-xs"
-                >
-                  {isDepositing ? 'Processing Deposit...' : 'Confirm Deposit'}
+              </div>
+
+              <div className="p-5 flex flex-col gap-3.5">
+                {actionError && (
+                  <div className="rounded-lg bg-red-50 p-2.5 text-xs text-brand-danger border border-red-200 font-medium">
+                    {actionError}
+                  </div>
+                )}
+
+                {/* Amount / Deposit Summary */}
+                <div className="bg-[#f0fcfd]/70 rounded-xl p-3 border border-cream-200 flex items-center justify-between">
+                  <div>
+                    <span className="block text-[10px] font-bold text-teal-700 uppercase tracking-wider">Deposit Summary</span>
+                    <span className="text-[11px] text-gray-500">Account Wallet Balance Top-Up</span>
+                  </div>
+                  <span className="text-xl font-bold text-brand-teal">
+                    ${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                {/* Test Helper Box */}
+                <div className="bg-[#bdebef]/50 text-[#204d51] rounded-lg px-3 py-2 border border-[#a1ced3] flex gap-2 items-center text-[11px]">
+                  <span className="material-symbols-outlined text-sm shrink-0">info</span>
+                  <span className="truncate">Test cards: <strong>4242…4242</strong> (success) or <strong>4000…0002</strong> (decline)</span>
+                </div>
+
+                {/* Payment Form */}
+                <form onSubmit={onDepositSubmit} className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-ink" htmlFor="depositAmount">Deposit Amount (USD)</label>
+                    <input
+                      id="depositAmount"
+                      type="number"
+                      min="1"
+                      step="any"
+                      placeholder="e.g. 500"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      required
+                      className="w-full bg-[#f8fbfb] rounded-lg border border-cream-200 px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors text-ink"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-ink" htmlFor="cardholderName">Cardholder Name</label>
+                    <input
+                      id="cardholderName"
+                      type="text"
+                      placeholder="Name on card"
+                      value={cardholderName}
+                      onChange={(e) => setCardholderName(e.target.value)}
+                      required
+                      className="w-full bg-[#f8fbfb] rounded-lg border border-cream-200 px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors text-ink"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-ink" htmlFor="cardNumber">Card Number</label>
+                    <div className="relative">
+                      <input
+                        id="cardNumber"
+                        type="text"
+                        placeholder="0000 0000 0000 0000"
+                        value={cardNumber}
+                        onChange={(e) => setCardNumber(e.target.value)}
+                        required
+                        className="w-full bg-[#f8fbfb] rounded-lg border border-cream-200 pl-9 pr-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors text-ink"
+                      />
+                      <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">
+                        credit_card
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-ink" htmlFor="expiry">Expiration</label>
+                      <input
+                        id="expiry"
+                        type="text"
+                        placeholder="MM/YY"
+                        value={expiry}
+                        onChange={(e) => setExpiry(e.target.value)}
+                        required
+                        className="w-full bg-[#f8fbfb] rounded-lg border border-cream-200 px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-brand-teal focus:ring-1 focus:ring-brand-teal transition-colors text-ink"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-ink" htmlFor="cvc">CVC</label>
+                      <input
+                        id="cvc"
+                        type="text"
+                        placeholder="123"
+                        value={cvc}
+                        onChange={(e) => setCvc(e.target.value)}
+                        required
+                        className="w-full bg-[#f8fbfb] rounded-lg border border-cream-200 px-3 py-2 text-xs focus:bg-white focus:border-brand-teal outline-none transition-colors text-ink"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isDepositing}
+                    className="mt-2 w-full bg-brand-teal hover:bg-teal-900 text-white rounded-lg py-2.5 px-4 font-semibold text-xs transition-colors flex justify-center items-center gap-2 cursor-pointer border-0 shadow-xs disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">lock</span>
+                    {isDepositing
+                      ? 'Processing Deposit...'
+                      : `Fund Escrow ($${Number(amount || 0).toFixed(2)})`}
+                  </button>
+
+                  <div className="text-center flex items-center justify-center gap-1 text-teal-600 text-[10px]">
+                    <span className="material-symbols-outlined text-[13px]">verified</span>
+                    Secure SSL Encryption
+                  </div>
+                </form>
+              </div>
+            </div>
+          ) : (
+            /* Withdraw Modal */
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-cream-200 animate-fadeIn">
+              <div className="flex items-center justify-between pb-4 border-b border-cream-100">
+                <h3 className="text-lg font-bold text-ink m-0">Withdraw Funds</h3>
+                <button onClick={closeModal} className="text-gray-400 hover:text-ink cursor-pointer border-0 bg-transparent">
+                  <span className="material-symbols-outlined">close</span>
                 </button>
-              </form>
-            ) : (
+              </div>
+
+              {actionError && (
+                <div className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-brand-danger border border-red-200 font-medium">
+                  {actionError}
+                </div>
+              )}
+
               <form onSubmit={onWithdrawSubmit} className="mt-4 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-ink mb-1">Withdraw Amount (USD)</label>
@@ -313,8 +431,8 @@ export const WalletPage = () => {
                   {isWithdrawing ? 'Processing Payout...' : 'Confirm Withdrawal'}
                 </button>
               </form>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </main>
