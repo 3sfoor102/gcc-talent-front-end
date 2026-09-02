@@ -23,6 +23,11 @@ const Nav = function (props) {
                             All Jobs
                         </Link>
                     </li>
+                    <li>
+                        <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline" to="/freelancers">
+                            Find Talent
+                        </Link>
+                    </li>
 
                     {isClient && (
                         <>

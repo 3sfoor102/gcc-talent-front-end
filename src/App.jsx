@@ -22,6 +22,7 @@ import MyProposalsPage from "./pages/MyProposalsPage"
 import ProfileEditorPage from "./pages/ProfileEditorPage"
 import PublicFreelancerProfilePage from './pages/PublicFreelancerProfilePage'
 import PublicClientProfilePage from './pages/PublicClientProfilePage'
+import FreelancerSearchPage from './pages/FreelancerSearchPage'
 // End of Hasan's
 
 const getUserFromToken = () => {
@@ -53,6 +54,7 @@ const App = () => {
           <Route path="/settings" element={user ? <Settings user={user} setUser={setUser} /> : <Landing />} />
 
           {/* Profile Routes */}
+          <Route path="/freelancers" element={<FreelancerSearchPage />} />
           <Route path="/freelancer/profile" element={<ProfileEditorPage user={user} />} />
           <Route path="/client/profile" element={<ProfileEditorPage user={user} />} />
           <Route path="/freelancers/:userId" element={<PublicFreelancerProfilePage />} />
