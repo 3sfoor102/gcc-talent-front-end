@@ -15,8 +15,14 @@ const getMessages = async (conversationId, page = 1) => {
     return res.data?.data || res.data
 }
 
+const sendMessage = async (conversationId, messageData) => {
+    const res = await axiosInstance.post(`/conversations/${conversationId}/messages`, messageData)
+    return res.data?.data || res.data
+}
+
 export {
     startConversation,
     getConversations,
     getMessages,
+    sendMessage
 }
