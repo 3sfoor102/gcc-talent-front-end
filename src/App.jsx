@@ -5,6 +5,8 @@ import SignUpForm from "./pages/SignUpForm";
 import SignInForm from "./pages/SignInForm";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import "./App.css";
 
 // Ali Saleh's imports
@@ -108,6 +110,8 @@ const App = () => {
           />
           <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
           <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
             path="/settings"
             element={
