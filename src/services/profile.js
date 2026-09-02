@@ -1,4 +1,4 @@
-const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}/api/v1/profile`
+const BASE_URL = `${import.meta.env.VITE_BACK_END_SERVER_URL}/profile`
 
 const getFreelancerProfile = async function () 
 {
@@ -6,14 +6,39 @@ const getFreelancerProfile = async function ()
         const token = localStorage.getItem('token')
         const res = await fetch(`${BASE_URL}/freelancer`, {
             method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (res.status === 404) return null
+        
+        const data = await res.json()
+        if (!data.success) throw new Error('Failed to fetch')
+        return data.data.profile
+    } catch (err) {
+        return null
+    }
+}
+
+const createFreelancerProfile = async function (profileData) 
+{
+    try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${BASE_URL}/freelancer`, {
+            method: 'POST',
             headers: { 
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify(profileData)
         })
+        
         const data = await res.json()
-        if (!data.success) throw new Error(data.error?.message || 'Failed to fetch freelancer')
-        return data.data.profile
+        
+        if (!res.ok) {
+            console.error("Backend Error Details:", data)
+            return null
+        }
+        
+        return data.data?.profile
     } catch (err) {
         console.error(err)
         return null
@@ -33,36 +58,22 @@ const updateFreelancerProfile = async function (profileData)
             body: JSON.stringify(profileData)
         })
         const data = await res.json()
-        if (!data.success) throw new Error(data.error?.message || 'Failed to update freelancer')
-        return data.data.profile
+        return data.data?.profile
     } catch (err) {
         console.error(err)
         return null
     }
 }
 
+
 const getClientProfile = async function () 
 {
-    try {
-        const token = localStorage.getItem('token')
-        const res = await fetch(`${BASE_URL}/client`, {
-            method: 'GET',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        const data = await res.json()
-        if (!data.success) throw new Error(data.error?.message || 'Failed to fetch client')
-        return data.data.profile
-    } catch (err) {
-        console.error(err)
-        return null
-    }
+    return null
 }
 
 export {
     getFreelancerProfile,
+    createFreelancerProfile,
     updateFreelancerProfile,
     getClientProfile
 }
