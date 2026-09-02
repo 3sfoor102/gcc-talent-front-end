@@ -40,8 +40,12 @@ const JobProposalsPage = ({ user }) => {
         if (!window.confirm("Accept this proposal and create a contract?")) return
         try {
             setActionLoading(true)
+            // acceptProposal returns res.data.data from proposals-service.js
             const res = await acceptProposal(proposalId)
-            const contractId = res.contract?._id || res.data?.contract?._id
+            
+            // Correctly parse contract ID from standard Mongoose response or envelope variations
+            const contractId = res?._id || res?.id || res?.contract?._id || res?.data?._id;
+
             if (contractId) {
                 navigate(`/contracts/${contractId}`)
             } else {
@@ -79,8 +83,13 @@ const JobProposalsPage = ({ user }) => {
         }
     }
 
-    if (loading) return <div className="p-8 text-center text-teal-600 font-medium">Loading proposals...</div>
-    if (error) return <div className="max-w-[1280px] mx-auto p-6 text-red-600 bg-red-50 rounded-lg">{error}</div>
+    if (loading || !job) {
+        return <div className="p-8 text-center text-teal-600 font-medium">Loading proposals and job details...</div>
+    }
+
+    if (error) {
+        return <div className="max-w-[1280px] mx-auto p-6 text-red-600 bg-red-50 rounded-lg">{error}</div>
+    }
 
     return (
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
