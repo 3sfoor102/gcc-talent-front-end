@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, Navigate } from "react-router";
 import { useState, useEffect } from "react";
 import Nav from "./components/Nav";
 import SignUpForm from "./pages/SignUpForm";
@@ -7,14 +7,15 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import NotFoundPage from "./pages/NotFoundPage";
+import { ProtectedRoute, GuestRoute } from "./components/ProtectedRoute";
 import "./App.css";
+
 // Ali Saleh's imports
 import Settings from "./components/Settings"
 import Profile from "./components/Profile"
 import EditProfile from "./components/EditProfile"
 import ManageUsers from "./pages/ManageUsers";
-
-// Ali Alasfoor's imports
 
 // Hasan Ali's imports
 import JobsPage from "./pages/Jobs"
@@ -27,7 +28,7 @@ import ProfileEditorPage from "./pages/ProfileEditorPage"
 import PublicFreelancerProfilePage from "./pages/PublicFreelancerProfilePage"
 import PublicClientProfilePage from "./pages/PublicClientProfilePage"
 import FreelancerSearchPage from "./pages/FreelancerSearchPage"
-import MessagesPage from './pages/MessagesPage'
+import MessagesPage from "./pages/MessagesPage"
 // End of Hasan's
 
 const getUserFromToken = () => {
@@ -108,36 +109,60 @@ const App = () => {
       <Nav user={user} setUser={setUser} />
       <main className="app-main">
         <Routes>
-          {/* Auth & Admin & Dashboard Routes & Settings */}
+          {/* Public Landing or Authenticated Dashboard */}
           <Route
             path="/"
             element={user ? <Dashboard user={user} /> : <Landing />}
           />
-          <Route 
-            path="/admin/users" 
-            element={user?.role === 'admin' ? <ManageUsers /> : <Landing />} 
-          />
-          <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
-          <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+          {/* Guest-Only Authentication Routes */}
           <Route
-            path="/settings"
+            path="/sign-up"
             element={
-              user ? <Settings user={user} setUser={setUser} /> : <Landing />
+              <GuestRoute user={user}>
+                <SignUpForm setUser={setUser} />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/sign-in"
+            element={
+              <GuestRoute user={user}>
+                <SignInForm setUser={setUser} />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <GuestRoute user={user}>
+                <ForgotPassword />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <GuestRoute user={user}>
+                <ResetPassword />
+              </GuestRoute>
             }
           />
 
-          {/* Profile Routes */}
+          {/* Admin Routes */}
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["admin"]}>
+                <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Public Directory & Browsing */}
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:jobId" element={<JobDetailsPage user={user} />} />
           <Route path="/freelancers" element={<FreelancerSearchPage />} />
-          <Route
-            path="/freelancer/profile"
-            element={<ProfileEditorPage user={user} />}
-          />
-          <Route
-            path="/client/profile"
-            element={<ProfileEditorPage user={user} />}
-          />
           <Route
             path="/freelancers/:userId"
             element={<PublicFreelancerProfilePage />}
@@ -146,42 +171,103 @@ const App = () => {
             path="/clients/:userId"
             element={<PublicClientProfilePage />}
           />
+
+          {/* Authenticated Routes (Any Logged-in User) */}
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute user={user}>
+                <Settings user={user} setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
-            element={user ? <Profile user={user} /> : <Landing />}
+            element={
+              <ProtectedRoute user={user}>
+                <Profile user={user} />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/profile/edit"
-            element={user ? <EditProfile user={user} /> : <Landing />}
+            element={
+              <ProtectedRoute user={user}>
+                <EditProfile user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute user={user}>
+                <MessagesPage user={user} />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Contract Routes */}
-
-          {/* Wallet Routes */}
-
-          {/* Jobs Routes */}
-          {/* Jobs Public Browsing */}
-          <Route path="/jobs" element={<JobsPage />} />
-          <Route path="/jobs/:jobId" element={<JobDetailsPage user={user} />} />
-
-          {/* Client Job & Proposal Management */}
-          <Route path="/client/jobs" element={<ClientJobsPage user={user} />} />
-          <Route path="/client/jobs/new" element={<JobFormPage />} />
-          <Route path="/client/jobs/:jobId/edit" element={<JobFormPage />} />
+          {/* Client-Only Routes */}
+          <Route
+            path="/client/profile"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["client"]}>
+                <ProfileEditorPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client/jobs"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["client"]}>
+                <ClientJobsPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client/jobs/new"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["client"]}>
+                <JobFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/client/jobs/:jobId/edit"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["client"]}>
+                <JobFormPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/client/jobs/:jobId/proposals"
-            element={<JobProposalsPage user={user} />}
+            element={
+              <ProtectedRoute user={user} allowedRoles={["client"]}>
+                <JobProposalsPage user={user} />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Proposal Routes */}
-          {/* Freelancer Proposals Management */}
+          {/* Freelancer-Only Routes */}
+          <Route
+            path="/freelancer/profile"
+            element={
+              <ProtectedRoute user={user} allowedRoles={["freelancer"]}>
+                <ProfileEditorPage user={user} />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/freelancer/proposals"
-            element={<MyProposalsPage user={user} />}
+            element={
+              <ProtectedRoute user={user} allowedRoles={["freelancer"]}>
+                <MyProposalsPage user={user} />
+              </ProtectedRoute>
+            }
           />
 
-          {/* Messages Routes */}
-          <Route path="/messages" element={user ? <MessagesPage user={user} /> : <Landing />} />
+          {/* 404 Splat Route */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>
