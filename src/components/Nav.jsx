@@ -1,40 +1,94 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router"
 import logo from "../assets/logo.png"
+import { getConversations } from "../services/messages-service"
 
 const Nav = function (props) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+    const [totalUnread, setTotalUnread] = useState(0)
+    const profileDropdownRef = useRef(null)
 
     const handleSignOut = function () {
         localStorage.removeItem('token')
         props.setUser(null)
         setIsMobileMenuOpen(false)
+        setIsProfileMenuOpen(false)
     }
 
     const isClient = props.user?.role === 'client'
     const isFreelancer = props.user?.role === 'freelancer'
+    const currentUserId = props.user?._id || props.user?.id || props.user?.userId
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+                setIsProfileMenuOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    useEffect(() => {
+        if (!props.user) {
+            setTotalUnread(0)
+            return
+        }
+
+        const checkUnread = async () => {
+            try {
+                const convList = await getConversations()
+                if (!Array.isArray(convList)) return
+
+                let count = 0
+                convList.forEach((c) => {
+                    if (c.unread) {
+                        const val =
+                            c.unread instanceof Map
+                                ? c.unread.get(currentUserId?.toString())
+                                : c.unread[currentUserId?.toString()]
+                        count += Number(val) || 0
+                    }
+                })
+                setTotalUnread(count)
+            } catch (err) {
+                // Ignore silent polling errors
+            }
+        }
+
+        checkUnread()
+        const interval = setInterval(checkUnread, 8000)
+        return () => clearInterval(interval)
+    }, [props.user, currentUserId])
+
+    const profilePath = isFreelancer ? "/freelancer/profile" : "/client/profile"
 
     return (
-        <nav className="bg-brand-teal text-white px-4 sm:px-6 py-4 shadow-md border-b border-cream-200/20 relative">
+        <nav className="bg-brand-teal text-white px-4 sm:px-6 py-3 shadow-md border-b border-cream-200/20 relative z-50">
             <div className="max-w-[1280px] mx-auto flex justify-between items-center">
 
-                <div className="flex items-center gap-2 lg:gap-6">
-                    <Link className="no-underline flex items-center shrink-0 mr-20 sm:mr-28 lg:mr-36" to="/">
+                {/* Left: Brand & Primary Navigation Links */}
+                <div className="flex items-center">
+                    <Link
+                        className="no-underline flex items-center shrink-0 w-36 sm:w-44 h-12 relative overflow-visible mr-6 lg:mr-10"
+                        to="/"
+                    >
                         <img
                             src={logo}
                             alt="GCC Talent"
-                            className="h-12 sm:h-16 w-auto object-contain scale-[2.5] origin-left"
+                            className="h-14 sm:h-16 w-auto object-contain scale-[2.4] origin-left select-none pointer-events-none"
                         />
                     </Link>
 
-                    <ul className="hidden lg:flex items-center gap-6 m-0 p-0 list-none">
+                    <ul className="hidden xl:flex items-center gap-6 m-0 p-0 list-none">
                         <li>
-                            <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/jobs">
+                            <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/jobs">
                                 All Jobs
                             </Link>
                         </li>
                         <li>
-                            <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/freelancers">
+                            <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/freelancers">
                                 Find Talent
                             </Link>
                         </li>
@@ -42,12 +96,12 @@ const Nav = function (props) {
                         {isClient && (
                             <>
                                 <li>
-                                    <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/client/jobs">
+                                    <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/client/jobs">
                                         My Jobs
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/client/jobs/new">
+                                    <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/client/jobs/new">
                                         Post a Job
                                     </Link>
                                 </li>
@@ -56,85 +110,134 @@ const Nav = function (props) {
 
                         {isFreelancer && (
                             <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/freelancer/proposals">
+                                <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/freelancer/proposals">
                                     My Proposals
+                                </Link>
+                            </li>
+                        )}
+
+                        {props.user && (
+                            <li>
+                                <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/contracts">
+                                    Contracts
                                 </Link>
                             </li>
                         )}
                     </ul>
                 </div>
 
-                {/* Desktop User / Auth Links */}
-                <div className="hidden lg:flex items-center gap-6">
+                {/* Right: Actions, Messaging & Profile Dropdown */}
+                <div className="hidden xl:flex items-center gap-4">
                     {props.user ? (
-                        <ul className="flex items-center gap-6 m-0 p-0 list-none">
-                            <li className="flex items-center">
-                                <Link
-                                    to={isFreelancer ? "/freelancer/profile" : "/client/profile"}
-                                    className="flex items-center gap-3 no-underline group cursor-pointer"
+                        <div className="flex items-center gap-3">
+                            {/* Messages Link with Counter Badge */}
+                            <Link
+                                to="/messages"
+                                className="relative p-2 text-cream-200 hover:text-white hover:bg-white/10 rounded-full transition-colors flex items-center justify-center no-underline"
+                                title="Messages"
+                            >
+                                <span className="material-symbols-outlined text-[22px]">mail</span>
+                                {totalUnread > 0 && (
+                                    <span className="absolute top-1 right-1 bg-amber-400 text-brand-teal text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[15px] leading-none text-center shadow-xs">
+                                        {totalUnread > 9 ? "9+" : totalUnread}
+                                    </span>
+                                )}
+                            </Link>
+
+                            {/* Notifications */}
+                            <button
+                                type="button"
+                                className="p-2 text-cream-200 hover:text-white hover:bg-white/10 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                                title="Notifications"
+                            >
+                                <span className="material-symbols-outlined text-[22px]">notifications</span>
+                            </button>
+
+                            <div className="h-5 w-[1px] bg-cream-200/20 mx-1" />
+
+                            {/* User Profile Dropdown */}
+                            <div className="relative" ref={profileDropdownRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                    className="flex items-center gap-2 text-left bg-white/5 hover:bg-white/10 p-1.5 pr-2.5 rounded-full border border-cream-200/20 cursor-pointer transition-colors"
                                 >
-                                    <div className="h-10 w-10 rounded-full border-2 border-cream-200/50 bg-cream-200 flex items-center justify-center text-brand-teal text-lg font-bold shadow-sm overflow-hidden group-hover:border-white transition-colors shrink-0">
+                                    <div className="h-8 w-8 rounded-full bg-cream-200 flex items-center justify-center text-brand-teal text-sm font-bold overflow-hidden shrink-0">
                                         {props.user.avatarUrl ? (
                                             <img src={props.user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                         ) : (
                                             <span>{props.user.name ? props.user.name.charAt(0).toUpperCase() : 'U'}</span>
                                         )}
                                     </div>
-                                    <span className="text-sm font-medium text-cream-200 group-hover:text-white transition-colors">
+                                    <span className="text-xs font-semibold text-cream-200 max-w-[100px] truncate">
                                         {props.user.name || 'User'}
                                     </span>
-                                </Link>
-                            </li>
-
-                            <li className="flex items-center">
-                                <button className="text-cream-200 hover:text-white bg-transparent border-0 cursor-pointer p-1 transition-colors">
-                                    <span className="material-symbols-outlined text-[22px]">notifications</span>
+                                    <span className="material-symbols-outlined text-[16px] text-cream-200">
+                                        {isProfileMenuOpen ? 'expand_less' : 'expand_more'}
+                                    </span>
                                 </button>
-                            </li>
 
-                            <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/">Dashboard</Link>
-                            </li>
+                                {isProfileMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white text-ink rounded-xl shadow-lg border border-cream-200 py-1.5 animate-fadeIn">
+                                        <div className="px-3.5 py-2 border-b border-cream-100">
+                                            <p className="text-xs font-bold text-ink truncate m-0">{props.user.name}</p>
+                                            <p className="text-[11px] text-gray-500 capitalize m-0">{props.user.role}</p>
+                                        </div>
 
-                            <li>
-                                <Link
-                                    className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors"
-                                    to={isFreelancer ? "/freelancer/profile" : "/client/profile"}
-                                >
-                                    Profile
-                                </Link>
-                            </li>
+                                        <Link
+                                            to="/"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                        >
+                                            Dashboard
+                                        </Link>
 
-                            <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/settings">Settings</Link>
-                            </li>
+                                        <Link
+                                            to={profilePath}
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                        >
+                                            View Profile
+                                        </Link>
 
-                            <li>
-                                <button onClick={handleSignOut} className="text-sm font-medium text-red-300 hover:text-red-100 bg-transparent border-0 cursor-pointer transition-colors">
-                                    Sign Out
-                                </button>
-                            </li>
-                        </ul>
+                                        <Link
+                                            to="/settings"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            className="block px-3.5 py-2 text-xs font-semibold text-ink hover:bg-brand-cream/40 no-underline transition-colors"
+                                        >
+                                            Settings
+                                        </Link>
+
+                                        <div className="h-[1px] bg-cream-100 my-1" />
+
+                                        <button
+                                            type="button"
+                                            onClick={handleSignOut}
+                                            className="w-full text-left px-3.5 py-2 text-xs font-semibold text-brand-danger hover:bg-red-50 transition-colors border-0 bg-transparent cursor-pointer"
+                                        >
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     ) : (
-                        <ul className="flex items-center gap-4 m-0 p-0 list-none">
-                            <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/">Home</Link>
-                            </li>
-                            <li>
-                                <Link className="text-sm font-medium text-cream-200 hover:text-white no-underline transition-colors" to="/sign-in">Sign In</Link>
-                            </li>
-                            <li>
-                                <Link className="text-sm font-medium bg-accent-sand hover:bg-[#B8956B] text-brand-teal px-4 py-2 rounded-lg no-underline font-semibold transition-colors shadow-xs" to="/sign-up">Sign Up</Link>
-                            </li>
-                        </ul>
+                        <div className="flex items-center gap-3">
+                            <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors px-2 py-1" to="/sign-in">
+                                Sign In
+                            </Link>
+                            <Link className="text-xs font-bold bg-accent-sand hover:bg-[#B8956B] text-brand-teal px-3.5 py-2 rounded-lg no-underline transition-colors shadow-2xs" to="/sign-up">
+                                Sign Up
+                            </Link>
+                        </div>
                     )}
                 </div>
 
-                {/* Mobile Hamburger & Avatar */}
-                <div className="flex lg:hidden items-center gap-3">
+                {/* Mobile / Tablet Toggle Header */}
+                <div className="flex xl:hidden items-center gap-2">
                     {props.user && (
-                        <Link to={isFreelancer ? "/freelancer/profile" : "/client/profile"} className="flex items-center">
-                            <div className="h-9 w-9 rounded-full border-2 border-cream-200/50 bg-cream-200 flex items-center justify-center text-brand-teal text-sm font-bold overflow-hidden">
+                        <Link to={profilePath} className="flex items-center">
+                            <div className="h-8 w-8 rounded-full bg-cream-200 flex items-center justify-center text-brand-teal text-xs font-bold overflow-hidden">
                                 {props.user.avatarUrl ? (
                                     <img src={props.user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -149,32 +252,24 @@ const Nav = function (props) {
                         className="text-cream-200 hover:text-white bg-transparent border-0 cursor-pointer p-1.5 focus:outline-none"
                         aria-label="Toggle Menu"
                     >
-                        <span className="material-symbols-outlined text-[28px]">
+                        <span className="material-symbols-outlined text-[26px]">
                             {isMobileMenuOpen ? 'close' : 'menu'}
                         </span>
                     </button>
                 </div>
             </div>
 
-            {/* Mobile Dropdown Menu */}
+            {/* Mobile / Tablet Responsive Drawer */}
             {isMobileMenuOpen && (
-                <div className="lg:hidden absolute top-full left-0 w-full bg-brand-teal border-t border-cream-200/20 shadow-xl py-4 px-6 flex flex-col gap-4 z-50">
-                    <ul className="flex flex-col gap-3 m-0 p-0 list-none">
+                <div className="xl:hidden absolute top-full left-0 w-full bg-brand-teal border-t border-cream-200/20 shadow-xl py-4 px-6 flex flex-col gap-3">
+                    <ul className="flex flex-col gap-2.5 m-0 p-0 list-none">
                         <li>
-                            <Link
-                                to="/jobs"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                            >
+                            <Link to="/jobs" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                 All Jobs
                             </Link>
                         </li>
                         <li>
-                            <Link
-                                to="/freelancers"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                            >
+                            <Link to="/freelancers" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                 Find Talent
                             </Link>
                         </li>
@@ -182,20 +277,12 @@ const Nav = function (props) {
                         {isClient && (
                             <>
                                 <li>
-                                    <Link
-                                        to="/client/jobs"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
+                                    <Link to="/client/jobs" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         My Jobs
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link
-                                        to="/client/jobs/new"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
+                                    <Link to="/client/jobs/new" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         Post a Job
                                     </Link>
                                 </li>
@@ -204,12 +291,16 @@ const Nav = function (props) {
 
                         {isFreelancer && (
                             <li>
-                                <Link
-                                    to="/freelancer/proposals"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                >
+                                <Link to="/freelancer/proposals" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                     My Proposals
+                                </Link>
+                            </li>
+                        )}
+
+                        {props.user && (
+                            <li>
+                                <Link to="/contracts" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                    Contracts
                                 </Link>
                             </li>
                         )}
@@ -219,46 +310,32 @@ const Nav = function (props) {
                         {props.user ? (
                             <>
                                 <li>
-                                    <Link
-                                        to="/messages"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
-                                        Messages
+                                    <Link to="/messages" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                        <span>Messages</span>
+                                        {totalUnread > 0 && (
+                                            <span className="bg-amber-400 text-brand-teal text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                                                {totalUnread > 9 ? "9+" : totalUnread}
+                                            </span>
+                                        )}
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link
-                                        to="/"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
+                                    <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         Dashboard
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link
-                                        to={isFreelancer ? "/freelancer/profile" : "/client/profile"}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
+                                    <Link to={profilePath} onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         Profile
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link
-                                        to="/settings"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
+                                    <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         Settings
                                     </Link>
                                 </li>
                                 <li>
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="w-full text-left text-sm font-medium text-red-300 hover:text-red-100 bg-transparent border-0 cursor-pointer py-1.5"
-                                    >
+                                    <button onClick={handleSignOut} className="w-full text-left text-sm font-medium text-red-300 hover:text-red-100 bg-transparent border-0 cursor-pointer py-1">
                                         Sign Out
                                     </button>
                                 </li>
@@ -266,29 +343,12 @@ const Nav = function (props) {
                         ) : (
                             <>
                                 <li>
-                                    <Link
-                                        to="/"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
-                                        Home
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/sign-in"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-sm font-medium text-cream-200 hover:text-white py-1.5 no-underline"
-                                    >
+                                    <Link to="/sign-in" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
                                         Sign In
                                     </Link>
                                 </li>
                                 <li className="pt-2">
-                                    <Link
-                                        to="/sign-up"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block text-center text-sm font-medium bg-accent-sand hover:bg-[#B8956B] text-brand-teal px-4 py-2.5 rounded-lg no-underline font-semibold"
-                                    >
+                                    <Link to="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="block text-center text-sm font-medium bg-accent-sand hover:bg-[#B8956B] text-brand-teal px-4 py-2 rounded-lg no-underline font-semibold">
                                         Sign Up
                                     </Link>
                                 </li>
