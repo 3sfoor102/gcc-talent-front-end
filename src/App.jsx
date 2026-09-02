@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFoundPage from "./pages/NotFoundPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import { ProtectedRoute, GuestRoute } from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -224,6 +225,14 @@ const App = () => {
             element={
               <ProtectedRoute user={user}>
                 <MessagesPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute user={user}>
+                <NotificationsPage />
               </ProtectedRoute>
             }
           />
