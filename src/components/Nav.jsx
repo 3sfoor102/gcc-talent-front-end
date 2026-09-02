@@ -127,11 +127,19 @@ const Nav = function (props) {
                         )}
 
                         {props.user && (
+    
+                        <>
                             <li>
                                 <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/contracts">
                                     Contracts
                                 </Link>
                             </li>
+                            <li>
+                                <Link className="text-xs font-semibold text-cream-200 hover:text-white no-underline transition-colors tracking-wide" to="/wallet">                                    Contracts
+                                    Wallet
+                                </Link>
+                            </li>
+                        </>
                         )}
                     </ul>
                 </div>
