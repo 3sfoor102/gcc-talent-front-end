@@ -22,7 +22,7 @@ const ContractWorkspacePage = ({ user }) => {
   const [actionError, setActionError] = useState(null);
 
   // Modals state
-  const [activeModal, setActiveModal] = useState(null); // 'deliver' | 'revise' | 'dispute' | 'addMilestone'
+  const [activeModal, setActiveModal] = useState(null); // 'deliver' | 'revise' | 'dispute' | 'addMilestone' | 'approve'
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
 
   // Form states for modals
@@ -111,11 +111,11 @@ const ContractWorkspacePage = ({ user }) => {
     }
   };
 
-  const handleApprove = async (mid) => {
-    if (!window.confirm("Approve this milestone and release escrow funds?")) return;
+  const submitApprove = async () => {
     setActionError(null);
     try {
-      await approveMilestone(contract._id, mid);
+      await approveMilestone(contract._id, selectedMilestoneId);
+      closeModal();
       await fetchWorkspace();
     } catch (err) {
       setActionError(err.message);
@@ -231,7 +231,7 @@ const ContractWorkspacePage = ({ user }) => {
             <span>{actionError}</span>
             <button
               onClick={() => setActionError(null)}
-              className="text-brand-danger font-bold text-base cursor-pointer"
+              className="text-brand-danger font-bold text-base cursor-pointer border-0 bg-transparent"
             >
               ✕
             </button>
@@ -455,8 +455,8 @@ const ContractWorkspacePage = ({ user }) => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleApprove(m._id)}
-                            className="px-3 py-1.5 bg-brand-teal text-white rounded-lg text-xs font-semibold hover:bg-teal-900 transition-colors cursor-pointer border-0"
+                            onClick={() => openModal("approve", m._id)}
+                            className="px-3.5 py-1.5 bg-brand-teal text-white rounded-lg text-xs font-semibold hover:bg-teal-900 transition-colors cursor-pointer border-0 shadow-2xs"
                           >
                             Approve
                           </button>
@@ -504,6 +504,42 @@ const ContractWorkspacePage = ({ user }) => {
 
       </div>
 
+      {/* MODAL: Approve Milestone Confirmation */}
+      {activeModal === "approve" && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-cream-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#EEF7F5] text-brand-success flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[24px]">check_circle</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-ink m-0">Approve Milestone</h3>
+                <p className="text-xs text-gray-500 m-0">Release escrow funds to freelancer</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 mb-6 leading-relaxed">
+              Are you sure you want to approve this milestone? This will immediately release the locked escrow funds to the freelancer's wallet (minus platform fees) and mark the milestone as approved.
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-cream-100">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer border-0 bg-transparent"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={submitApprove}
+                className="px-5 py-2 text-xs font-bold bg-brand-teal text-white rounded-lg hover:bg-teal-900 cursor-pointer border-0 shadow-2xs"
+              >
+                Confirm & Release Funds
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: Submit Delivery */}
       {activeModal === "deliver" && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
@@ -538,13 +574,13 @@ const ContractWorkspacePage = ({ user }) => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer border-0 bg-transparent"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-brand-teal text-white rounded-lg hover:bg-teal-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-teal text-white rounded-lg hover:bg-teal-900 cursor-pointer border-0"
                 >
                   Confirm Delivery
                 </button>
@@ -578,13 +614,13 @@ const ContractWorkspacePage = ({ user }) => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer border-0 bg-transparent"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-brand-danger text-white rounded-lg hover:bg-red-700 cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-danger text-white rounded-lg hover:bg-red-700 cursor-pointer border-0"
                 >
                   Send Revision Request
                 </button>
@@ -618,13 +654,13 @@ const ContractWorkspacePage = ({ user }) => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer border-0 bg-transparent"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-brand-danger text-white rounded-lg hover:bg-red-700 cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-danger text-white rounded-lg hover:bg-red-700 cursor-pointer border-0"
                 >
                   Submit to Admin
                 </button>
@@ -687,13 +723,13 @@ const ContractWorkspacePage = ({ user }) => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer border-0 bg-transparent"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-brand-teal text-white rounded-lg hover:bg-teal-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold bg-brand-teal text-white rounded-lg hover:bg-teal-900 cursor-pointer border-0"
                 >
                   Add Milestone
                 </button>
