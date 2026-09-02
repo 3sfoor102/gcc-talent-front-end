@@ -12,6 +12,7 @@ import "./App.css";
 import Settings from "./components/Settings"
 import Profile from "./components/Profile"
 import EditProfile from "./components/EditProfile"
+import ManageUsers from "./pages/ManageUsers";
 
 // Ali Alasfoor's imports
 
@@ -111,6 +112,10 @@ const App = () => {
           <Route
             path="/"
             element={user ? <Dashboard user={user} /> : <Landing />}
+          />
+          <Route 
+            path="/admin/users" 
+            element={user?.role === 'admin' ? <ManageUsers /> : <Landing />} 
           />
           <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
           <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
