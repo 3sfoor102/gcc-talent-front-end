@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router"
 import logo from "../assets/logo.png"
 import { getConversations } from "../services/messages-service"
+import { getNotifications } from "../services/notification-service"
 
 const Nav = function (props) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
     const [totalUnread, setTotalUnread] = useState(0)
+    const [unreadNotifs, setUnreadNotifs] = useState(0)
     const profileDropdownRef = useRef(null)
 
     const handleSignOut = function () {
@@ -33,25 +35,32 @@ const Nav = function (props) {
     useEffect(() => {
         if (!props.user) {
             setTotalUnread(0)
+            setUnreadNotifs(0)
             return
         }
 
         const checkUnread = async () => {
             try {
                 const convList = await getConversations()
-                if (!Array.isArray(convList)) return
+                if (Array.isArray(convList)) {
+                    let count = 0
+                    convList.forEach((c) => {
+                        if (c.unread) {
+                            const val =
+                                c.unread instanceof Map
+                                    ? c.unread.get(currentUserId?.toString())
+                                    : c.unread[currentUserId?.toString()]
+                            count += Number(val) || 0
+                        }
+                    })
+                    setTotalUnread(count)
+                }
 
-                let count = 0
-                convList.forEach((c) => {
-                    if (c.unread) {
-                        const val =
-                            c.unread instanceof Map
-                                ? c.unread.get(currentUserId?.toString())
-                                : c.unread[currentUserId?.toString()]
-                        count += Number(val) || 0
-                    }
-                })
-                setTotalUnread(count)
+                const notifList = await getNotifications()
+                if (Array.isArray(notifList)) {
+                    const unreadCount = notifList.filter(n => !n.isRead).length
+                    setUnreadNotifs(unreadCount)
+                }
             } catch (err) {
                 // Ignore silent polling errors
             }
@@ -144,14 +153,18 @@ const Nav = function (props) {
                                 )}
                             </Link>
 
-                            {/* Notifications */}
-                            <button
-                                type="button"
-                                className="p-2 text-cream-200 hover:text-white hover:bg-white/10 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                            <Link
+                                to="/notifications"
+                                className="relative p-2 text-cream-200 hover:text-white hover:bg-white/10 rounded-full transition-colors flex items-center justify-center no-underline"
                                 title="Notifications"
                             >
                                 <span className="material-symbols-outlined text-[22px]">notifications</span>
-                            </button>
+                                {unreadNotifs > 0 && (
+                                    <span className="absolute top-1 right-1 bg-amber-400 text-brand-teal text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[15px] leading-none text-center shadow-xs">
+                                        {unreadNotifs > 9 ? "9+" : unreadNotifs}
+                                    </span>
+                                )}
+                            </Link>
 
                             <div className="h-5 w-[1px] bg-cream-200/20 mx-1" />
 
@@ -315,6 +328,16 @@ const Nav = function (props) {
                                         {totalUnread > 0 && (
                                             <span className="bg-amber-400 text-brand-teal text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
                                                 {totalUnread > 9 ? "9+" : totalUnread}
+                                            </span>
+                                        )}
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-between text-sm font-medium text-cream-200 hover:text-white py-1 no-underline">
+                                        <span>Notifications</span>
+                                        {unreadNotifs > 0 && (
+                                            <span className="bg-amber-400 text-brand-teal text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                                                {unreadNotifs > 9 ? "9+" : unreadNotifs}
                                             </span>
                                         )}
                                     </Link>
