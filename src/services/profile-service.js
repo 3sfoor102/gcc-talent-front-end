@@ -33,6 +33,12 @@ const getPublicClientProfile = async (userId) => {
     return res.data?.data?.profile || res.data?.profile || res.data
 }
 
+const searchFreelancers = async (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    const res = await axiosInstance.get(`/profile/freelancers?${query}`)
+    return res.data
+}
+
 export {
     getMyFreelancerProfile,
     updateFreelancerProfile,
@@ -40,4 +46,5 @@ export {
     getMyClientProfile,
     getPublicClientProfile,
     getPublicFreelancerProfile,
+    searchFreelancers
 }
