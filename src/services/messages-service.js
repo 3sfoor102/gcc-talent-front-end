@@ -6,11 +6,17 @@ const startConversation = async (recipientId, context = {}) => {
 }
 
 const getConversations = async () => {
-  const res = await axiosInstance.get('/conversations')
-  return res.data?.data || res.data
+    const res = await axiosInstance.get('/conversations')
+    return res.data?.data || res.data
+}
+
+const getMessages = async (conversationId, page = 1) => {
+    const res = await axiosInstance.get(`/conversations/${conversationId}/messages?page=${page}`)
+    return res.data?.data || res.data
 }
 
 export {
     startConversation,
     getConversations,
+    getMessages,
 }
