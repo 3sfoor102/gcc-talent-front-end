@@ -4,6 +4,7 @@ import { getMyProposals, withdrawProposal } from "../services/proposals-service"
 
 const MyProposalsPage = ({ user }) => {
     const [proposals, setProposals] = useState([]);
+    const [statusFilter, setStatusFilter] = useState("");
     const [meta, setMeta] = useState({ page: 1, limit: 12, total: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,6 +31,16 @@ const MyProposalsPage = ({ user }) => {
         fetchProposals(1);
     }, []);
 
+    const handleWithdrawClick = (proposal) => {
+        // Logical Restriction: Only pending or shortlisted proposals can be withdrawn
+        if (proposal.status !== 'pending' && proposal.status !== 'shortlisted') {
+            setError(`Cannot withdraw a proposal that is already ${proposal.status}.`);
+            return;
+        }
+        setError(null);
+        setProposalToWithdraw(proposal);
+    };
+
     const confirmWithdrawal = async () => {
         if (!proposalToWithdraw) return;
 
@@ -37,10 +48,10 @@ const MyProposalsPage = ({ user }) => {
         setError(null);
 
         try {
-            const updated = await withdrawProposal(proposalToWithdraw);
+            const updated = await withdrawProposal(proposalToWithdraw._id);
             setProposals((prevProposals) =>
                 prevProposals.map((p) =>
-                    p._id === proposalToWithdraw
+                    p._id === proposalToWithdraw._id
                         ? { ...p, status: updated?.status || 'withdrawn' }
                         : p
                 )
@@ -71,6 +82,10 @@ const MyProposalsPage = ({ user }) => {
         }
     };
 
+    const filteredProposals = statusFilter
+        ? proposals.filter((p) => p.status === statusFilter)
+        : proposals;
+
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-cream py-20 px-4 flex justify-center items-center">
@@ -83,8 +98,8 @@ const MyProposalsPage = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-brand-cream py-10 px-4 sm:px-6 relative">
-            <div className="max-w-6xl mx-auto">
-                <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="max-w-6xl mx-auto flex flex-col gap-6">
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-ink m-0">My Proposals</h1>
                         <p className="text-teal-600 m-0 mt-1 text-sm">
@@ -99,13 +114,47 @@ const MyProposalsPage = ({ user }) => {
                     </Link>
                 </header>
 
+                {/* Filter Toolbar */}
+                <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-xl border border-cream-200 shadow-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px] text-teal-600">filter_list</span>
+                        <label htmlFor="status-filter" className="text-xs font-semibold text-ink">
+                            Filter by Status:
+                        </label>
+                        <select
+                            id="status-filter"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-brand-cream border border-cream-200 rounded-lg py-1 px-3 text-xs text-ink font-semibold focus:outline-none focus:border-brand-teal"
+                        >
+                            <option value="">All Statuses ({proposals.length})</option>
+                            <option value="pending">Pending</option>
+                            <option value="shortlisted">Shortlisted</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="declined">Declined</option>
+                            <option value="withdrawn">Withdrawn</option>
+                        </select>
+                    </div>
+
+                    <span className="text-xs text-teal-600 font-medium">
+                        Showing: <strong className="text-ink">{filteredProposals.length}</strong> proposals
+                    </span>
+                </div>
+
                 {error && (
-                    <div className="mb-6 p-4 bg-[#FDECEB] text-brand-danger rounded-lg text-sm border border-brand-danger/20">
-                        {error}
+                    <div className="p-4 bg-[#FDECEB] text-brand-danger rounded-lg text-sm border border-brand-danger/20 flex justify-between items-center">
+                        <span>{error}</span>
+                        <button
+                            type="button"
+                            onClick={() => setError(null)}
+                            className="text-brand-danger font-bold text-xs bg-transparent border-0 cursor-pointer"
+                        >
+                            Dismiss
+                        </button>
                     </div>
                 )}
 
-                {!loading && !error && proposals.length === 0 && (
+                {!error && proposals.length === 0 && (
                     <div className="bg-white rounded-2xl shadow-sm border border-cream-200 p-10 text-center">
                         <div className="w-16 h-16 bg-cream-200 text-brand-teal rounded-full flex items-center justify-center mx-auto mb-4">
                             <span className="material-symbols-outlined text-[32px]">description</span>
@@ -123,14 +172,22 @@ const MyProposalsPage = ({ user }) => {
                     </div>
                 )}
 
-                {!loading && !error && proposals.length > 0 && (
+                {!error && proposals.length > 0 && filteredProposals.length === 0 && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-cream-200 p-8 text-center text-gray-500 text-sm">
+                        No proposals found under the "{statusFilter}" status.
+                    </div>
+                )}
+
+                {!error && filteredProposals.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {proposals.map((proposal) => {
+                        {filteredProposals.map((proposal) => {
                             const job = proposal.job || {};
                             const jobId = job._id || proposal.job;
                             const isPending = proposal.status === 'pending';
+                            const isShortlisted = proposal.status === 'shortlisted';
                             const isAccepted = proposal.status === 'accepted';
                             const isWithdrawn = proposal.status === 'withdrawn';
+                            const contractId = proposal.contract?._id || proposal.contract;
 
                             return (
                                 <article
@@ -190,10 +247,10 @@ const MyProposalsPage = ({ user }) => {
                                         </span>
 
                                         <div className="flex items-center gap-3">
-                                            {isPending && (
+                                            {(isPending || isShortlisted) && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setProposalToWithdraw(proposal._id)}
+                                                    onClick={() => handleWithdrawClick(proposal)}
                                                     className="text-xs font-bold text-brand-danger hover:text-red-700 bg-transparent border-0 cursor-pointer p-0 transition-colors"
                                                 >
                                                     Withdraw
@@ -202,7 +259,7 @@ const MyProposalsPage = ({ user }) => {
 
                                             {isAccepted ? (
                                                 <Link
-                                                    to="/contracts"
+                                                    to={contractId ? `/contracts/${contractId}` : "/contracts"}
                                                     className="text-xs font-bold bg-brand-teal text-white px-3 py-1.5 rounded-md hover:bg-teal-900 no-underline transition-colors"
                                                 >
                                                     View Contract
@@ -260,7 +317,7 @@ const MyProposalsPage = ({ user }) => {
                         </div>
                         <h3 className="text-lg font-bold text-ink mb-1 m-0">Withdraw Proposal?</h3>
                         <p className="text-gray-500 mb-6 text-xs m-0 leading-relaxed">
-                            Are you sure you want to withdraw this proposal? You will not be able to undo this action.
+                            Are you sure you want to withdraw your <strong className="text-ink">${proposalToWithdraw.amount}</strong> bid for <strong className="text-ink">"{proposalToWithdraw.job?.title || 'this job'}"</strong>? The client will no longer be able to accept your proposal.
                         </p>
                         <div className="flex gap-3 justify-end">
                             <button

@@ -10,6 +10,8 @@ const JobDetailsPage = ({ user }) => {
     const { jobId } = useParams()
     const navigate = useNavigate()
 
+    const todayStr = new Date().toISOString().split("T")[0]
+
     const initialProposalForm = {
         coverLetter: "",
         amount: "",
@@ -31,11 +33,12 @@ const JobDetailsPage = ({ user }) => {
     const [proposalSuccess, setProposalSuccess] = useState(false)
 
     const [milestone, setMilestone] = useState(initialMilestoneState)
+    const [milestoneError, setMilestoneError] = useState(null)
 
     const [isProfileComplete, setIsProfileComplete] = useState(false)
     const [checkingProfile, setCheckingProfile] = useState(true)
     const [showIncompleteModal, setShowIncompleteModal] = useState(false)
-    
+
     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
     useEffect(() => {
@@ -126,6 +129,9 @@ const JobDetailsPage = ({ user }) => {
     )
     const isFreelancer = user?.role === "freelancer"
 
+    // Check if job deadline is already passed
+    const isPastDeadline = job.deadline && new Date(job.deadline) < new Date().setHours(0, 0, 0, 0)
+
     const handleProposalChange = (event) => {
         const { name, value } = event.target
         setProposalData((prev) => ({ ...prev, [name]: value }))
@@ -133,19 +139,47 @@ const JobDetailsPage = ({ user }) => {
 
     const handleMilestoneChange = (event) => {
         const { name, value } = event.target
+        setMilestoneError(null)
         setMilestone((prev) => ({ ...prev, [name]: value }))
     }
 
     const addMilestone = () => {
-        if (!milestone.title || !milestone.amount) return
+        setMilestoneError(null)
+
+        if (!milestone.title.trim()) {
+            setMilestoneError("Milestone title is required.")
+            return
+        }
+
+        const amt = Number(milestone.amount)
+        if (!amt || amt <= 0) {
+            setMilestoneError("Milestone amount must be greater than $0.")
+            return
+        }
+
+        // Logical Restriction: Due Date cannot be in the past
+        if (milestone.dueDate && milestone.dueDate < todayStr) {
+            setMilestoneError("Milestone due date cannot be set before today.")
+            return
+        }
+
+        // Logical Restriction: Milestones should not exceed total proposal bid
+        const currentMilestonesSum = proposalData.milestones.reduce((acc, m) => acc + m.amount, 0)
+        const totalProposalAmount = Number(proposalData.amount) || 0
+
+        if (totalProposalAmount > 0 && currentMilestonesSum + amt > totalProposalAmount) {
+            setMilestoneError(`Total milestone amounts ($${currentMilestonesSum + amt}) cannot exceed your proposal bid ($${totalProposalAmount}).`)
+            return
+        }
+
         setProposalData((prev) => ({
             ...prev,
             milestones: [
                 ...prev.milestones,
-                { ...milestone, amount: Number(milestone.amount) },
+                { ...milestone, amount: amt },
             ],
         }))
-        setMilestone({ title: "", amount: "", dueDate: "" })
+        setMilestone(initialMilestoneState)
     }
 
     const removeMilestone = (index) => {
@@ -158,6 +192,13 @@ const JobDetailsPage = ({ user }) => {
     const handleFileUpload = async (event) => {
         const file = event.target.files?.[0]
         if (!file) return
+
+        // Logical Restriction: File size limit check (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            setProposalError("Attachment size cannot exceed 10MB.")
+            event.target.value = ""
+            return
+        }
 
         setUploadingFile(true)
         setProposalError(null)
@@ -196,13 +237,35 @@ const JobDetailsPage = ({ user }) => {
             return
         }
 
+        const bidAmount = Number(proposalData.amount)
+        const delivery = Number(proposalData.deliveryDays)
+
+        if (!bidAmount || bidAmount <= 0) {
+            setProposalError("Please enter a valid bid amount greater than 0.")
+            return
+        }
+
+        if (!delivery || delivery <= 0) {
+            setProposalError("Delivery time must be at least 1 day.")
+            return
+        }
+
+        // Validate milestone sum matches bid amount if milestones are present
+        if (proposalData.milestones.length > 0) {
+            const milestoneSum = proposalData.milestones.reduce((acc, m) => acc + m.amount, 0)
+            if (milestoneSum !== bidAmount) {
+                setProposalError(`Milestones sum ($${milestoneSum}) must match the total bid amount ($${bidAmount}).`)
+                return
+            }
+        }
+
         setSubmitting(true)
         setProposalError(null)
         try {
             await createProposal(job._id, {
-                coverLetter: proposalData.coverLetter,
-                amount: Number(proposalData.amount),
-                deliveryDays: Number(proposalData.deliveryDays),
+                coverLetter: proposalData.coverLetter.trim(),
+                amount: bidAmount,
+                deliveryDays: delivery,
                 milestones: proposalData.milestones,
                 attachments: proposalData.attachments,
             })
@@ -308,8 +371,8 @@ const JobDetailsPage = ({ user }) => {
                     {job.deadline && (
                         <div>
                             <span className="block text-[12px] font-medium text-teal-600 mb-0.5">Deadline</span>
-                            <span className="text-[14px] font-medium text-ink">
-                                {new Date(job.deadline).toLocaleDateString()}
+                            <span className={`text-[14px] font-medium ${isPastDeadline ? "text-brand-danger font-bold" : "text-ink"}`}>
+                                {new Date(job.deadline).toLocaleDateString()} {isPastDeadline && "(Expired)"}
                             </span>
                         </div>
                     )}
@@ -389,7 +452,13 @@ const JobDetailsPage = ({ user }) => {
                                 </Link>
                             </div>
                         ) : isFreelancer ? (
-                            job.status === "open" ? (
+                            isPastDeadline ? (
+                                <div className="p-4 bg-amber-50 rounded-[8px] text-center border border-amber-200">
+                                    <p className="text-[14px] font-medium text-amber-800 m-0">
+                                        This job deadline has expired. New proposals are no longer accepted.
+                                    </p>
+                                </div>
+                            ) : job.status === "open" ? (
                                 checkingProfile ? (
                                     <div className="p-6 text-center text-teal-600 animate-pulse text-[14px]">
                                         Checking profile readiness...
@@ -438,6 +507,7 @@ const JobDetailsPage = ({ user }) => {
                                                     </label>
                                                     <input
                                                         type="number"
+                                                        min="1"
                                                         name="amount"
                                                         value={proposalData.amount}
                                                         onChange={handleProposalChange}
@@ -453,6 +523,7 @@ const JobDetailsPage = ({ user }) => {
                                                     </label>
                                                     <input
                                                         type="number"
+                                                        min="1"
                                                         name="deliveryDays"
                                                         value={proposalData.deliveryDays}
                                                         onChange={handleProposalChange}
@@ -493,6 +564,10 @@ const JobDetailsPage = ({ user }) => {
                                                     </button>
                                                 </div>
 
+                                                {milestoneError && (
+                                                    <p className="text-xs text-brand-danger m-0 font-medium">{milestoneError}</p>
+                                                )}
+
                                                 <div className="flex flex-col gap-2">
                                                     <input
                                                         type="text"
@@ -505,6 +580,7 @@ const JobDetailsPage = ({ user }) => {
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <input
                                                             type="number"
+                                                            min="1"
                                                             name="amount"
                                                             placeholder="Amount ($)"
                                                             value={milestone.amount}
@@ -513,6 +589,7 @@ const JobDetailsPage = ({ user }) => {
                                                         />
                                                         <input
                                                             type="date"
+                                                            min={todayStr}
                                                             name="dueDate"
                                                             value={milestone.dueDate}
                                                             onChange={handleMilestoneChange}
@@ -592,7 +669,7 @@ const JobDetailsPage = ({ user }) => {
                                             <button
                                                 type="submit"
                                                 disabled={submitting || uploadingFile}
-                                                className="w-full py-3 mt-1 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] font-semibold text-[14px] disabled:opacity-50 transition-colors shadow-xs cursor-pointer border-0"
+                                                className="w-full py-3 mt-1 bg-brand-teal hover:bg-teal-900 text-white rounded-[8px] font-semibold text-[14px] disabled:opacity-50 transition-colors shadow-xs cursor-pointer border-0"
                                             >
                                                 {submitting ? "Submitting..." : "Submit Proposal"}
                                             </button>
@@ -613,21 +690,46 @@ const JobDetailsPage = ({ user }) => {
                                 </p>
                                 <Link
                                     to="/sign-in"
-                                    className="inline-block w-full py-2.5 bg-accent-sand hover:bg-[#B8956B] text-brand-teal rounded-[8px] text-[14px] font-semibold transition-colors no-underline"
+                                    className="inline-block w-full py-2.5 bg-brand-teal hover:bg-teal-900 text-white rounded-[8px] text-[14px] font-semibold transition-colors no-underline"
                                 >
                                     Sign In as a Freelancer
                                 </Link>
                             </div>
-                        ) : null}
+                        ) : (
+                            /* Rendered when logged in as a non-owner Client or Admin */
+                            <div className="flex flex-col gap-3 p-4 bg-brand-cream/40 rounded-[8px] border border-cream-200 text-center">
+                                <div className="w-10 h-10 rounded-full bg-cream-200 text-brand-teal flex items-center justify-center mx-auto">
+                                    <span className="material-symbols-outlined text-[20px]">corporate_fare</span>
+                                </div>
+                                <h4 className="text-sm font-bold text-ink m-0">Client Overview</h4>
+                                <p className="text-xs text-gray-500 m-0 leading-relaxed">
+                                    You are viewing this posting with a client account. Proposals can only be submitted by registered freelancers.
+                                </p>
+                                <div className="flex flex-col gap-2 pt-2 border-t border-cream-200">
+                                    <Link
+                                        to="/freelancers"
+                                        className="w-full py-2 bg-brand-teal hover:bg-teal-900 text-white rounded-[6px] text-xs font-semibold no-underline transition-colors block text-center"
+                                    >
+                                        Find Talent Instead
+                                    </Link>
+                                    <Link
+                                        to="/client/jobs/new"
+                                        className="w-full py-2 bg-white hover:bg-cream-100 text-ink border border-cream-200 rounded-[6px] text-xs font-semibold no-underline transition-colors block text-center"
+                                    >
+                                        Post Your Own Job
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {!isOwner && user && (
                         <div className="mt-4 text-center">
-                            <button 
-                                onClick={() => setIsReportModalOpen(true)} 
+                            <button
+                                onClick={() => setIsReportModalOpen(true)}
                                 className="text-gray-400 hover:text-brand-danger text-[13px] flex items-center justify-center gap-1.5 mx-auto bg-transparent border-0 cursor-pointer transition-colors"
                             >
-                                <span className="material-symbols-outlined text-[16px]">flag</span> 
+                                <span className="material-symbols-outlined text-[16px]">flag</span>
                                 Report this job
                             </button>
                         </div>
@@ -635,7 +737,7 @@ const JobDetailsPage = ({ user }) => {
                 </div>
             </aside>
 
-            {/* Incomplete Profile Prompt Modal (F-PRO-05) */}
+            {/* Incomplete Profile Prompt Modal */}
             {showIncompleteModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
                     <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl border border-cream-200 text-center">
@@ -669,11 +771,11 @@ const JobDetailsPage = ({ user }) => {
             )}
 
             {job && (
-                <ReportModal 
-                    isOpen={isReportModalOpen} 
-                    onClose={() => setIsReportModalOpen(false)} 
-                    targetType="Job" 
-                    targetId={job._id} 
+                <ReportModal
+                    isOpen={isReportModalOpen}
+                    onClose={() => setIsReportModalOpen(false)}
+                    targetType="Job"
+                    targetId={job._id}
                 />
             )}
         </div>

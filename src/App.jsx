@@ -19,6 +19,7 @@ import EditProfile from "./components/EditProfile";
 import ManageUsers from "./pages/ManageUsers";
 import ManageCategories from "./pages/ManageCategories";
 import ManageReports from "./pages/ManageReports";
+import { LinkedInCallback } from 'react-linkedin-login-oauth2';
 
 // Ali Alasfoor's imports
 import ContractsPage from "./pages/ContractsPage";
@@ -324,6 +325,8 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/linkedin" element={<LinkedInCallback />} />
 
           {/* 404 Splat Route */}
           <Route path="*" element={<NotFoundPage />} />

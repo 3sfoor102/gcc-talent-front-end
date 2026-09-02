@@ -7,6 +7,8 @@ const JobFormPage = () => {
     const { jobId } = useParams()
     const navigate = useNavigate()
 
+    const todayStr = new Date().toISOString().split('T')[0]
+
     const initialFormData = {
         title: '',
         description: '',
@@ -32,7 +34,9 @@ const JobFormPage = () => {
     const [error, setError] = useState(null)
     const [uploadingFile, setUploadingFile] = useState(false)
 
-    // Only treat as edit mode if jobId exists AND is not the literal string "new"
+    // Confirmation Modals State
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, overrideStatus: null, title: '', message: '' })
+
     const isEditMode = Boolean(jobId && jobId !== 'new')
 
     useEffect(() => {
@@ -92,10 +96,12 @@ const JobFormPage = () => {
 
     const handleChange = (event) => {
         const { name, value } = event.target
+        setError(null)
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
     const handleSkillToggle = (skillName) => {
+        setError(null)
         setFormData((prev) => {
             const isSelected = prev.skills.includes(skillName)
             return {
@@ -110,6 +116,12 @@ const JobFormPage = () => {
     const handleFileUpload = async (event) => {
         const file = event.target.files?.[0]
         if (!file) return
+
+        if (file.size > 10 * 1024 * 1024) {
+            setError('File size exceeds 10MB limit.')
+            event.target.value = ''
+            return
+        }
 
         setUploadingFile(true)
         setError(null)
@@ -150,6 +162,39 @@ const JobFormPage = () => {
                 return false
             }
         }
+
+        if (step === 2) {
+            if (!formData.skills || formData.skills.length === 0) {
+                setError('Please select at least one relevant skill for this job.')
+                return false
+            }
+        }
+
+        if (step === 3) {
+            const min = Number(formData.budgetMin)
+            const max = Number(formData.budgetMax)
+
+            if (formData.budgetMin !== '' && min <= 0) {
+                setError('Minimum budget must be greater than $0.')
+                return false
+            }
+
+            if (formData.budgetMax !== '' && max <= 0) {
+                setError('Maximum budget must be greater than $0.')
+                return false
+            }
+
+            if (formData.budgetMin !== '' && formData.budgetMax !== '' && min > max) {
+                setError('Minimum budget cannot exceed maximum budget.')
+                return false
+            }
+
+            if (formData.deadline && formData.deadline < todayStr) {
+                setError('Application deadline cannot be set to a past date.')
+                return false
+            }
+        }
+
         return true
     }
 
@@ -164,17 +209,28 @@ const JobFormPage = () => {
         setCurrentStep((prev) => Math.max(1, prev - 1))
     }
 
-    // Pure manual save trigger
-    const handleSave = async (overrideStatus = null) => {
-        if (!validateStep(1)) {
-            setCurrentStep(1)
+    const triggerSavePrompt = (overrideStatus = null) => {
+        if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
             return
         }
 
+        const isDraft = (overrideStatus || formData.status) === 'draft'
+        setConfirmModal({
+            isOpen: true,
+            overrideStatus,
+            title: isDraft ? 'Save as Draft?' : isEditMode ? 'Update Job Posting?' : 'Publish Job Listing?',
+            message: isDraft
+                ? 'Saving as a draft keeps this posting hidden from freelancers until you decide to open it.'
+                : 'Freelancers across the GCC will immediately be able to view and apply to this job posting.'
+        })
+    }
+
+    const executeSave = async () => {
+        const finalStatus = confirmModal.overrideStatus || formData.status
+        setConfirmModal({ isOpen: false, overrideStatus: null, title: '', message: '' })
+
         setLoading(true)
         setError(null)
-
-        const finalStatus = overrideStatus || formData.status
 
         const payload = {
             ...formData,
@@ -209,16 +265,9 @@ const JobFormPage = () => {
     ]
 
     return (
-        <div className="w-full max-w-[800px] mx-auto px-6 py-10">
+        <div className="w-full max-w-[800px] mx-auto px-6 py-10 relative">
             {/* Back Link & Title */}
             <div className="mb-6">
-                <Link
-                    to="/client/jobs"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-teal-600 hover:text-ink transition-colors mb-2"
-                >
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Back to My Jobs
-                </Link>
                 <h1 className="text-[30px] sm:text-[34px] font-semibold text-ink leading-tight">
                     {isEditMode ? 'Edit Job Posting' : 'Post a Job'}
                 </h1>
@@ -249,7 +298,7 @@ const JobFormPage = () => {
                                         setCurrentStep(step.num)
                                     }
                                 }}
-                                className="flex flex-col items-center group cursor-pointer focus:outline-none"
+                                className="flex flex-col items-center group cursor-pointer focus:outline-none border-0 bg-transparent"
                             >
                                 <div
                                     className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold ring-4 ring-brand-cream transition-all duration-200 ${isActive
@@ -275,13 +324,22 @@ const JobFormPage = () => {
 
             {/* Error Banner */}
             {error && (
-                <div className="mb-6 p-4 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[14px] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px]">error</span>
-                    <span>{error}</span>
+                <div className="mb-6 p-4 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[14px] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[20px]">error</span>
+                        <span>{error}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setError(null)}
+                        className="text-brand-danger font-bold text-xs bg-transparent border-0 cursor-pointer"
+                    >
+                        Dismiss
+                    </button>
                 </div>
             )}
 
-            {/* Main Container - div instead of form to avoid native form submit triggers */}
+            {/* Form Steps Card */}
             <div className="bg-white rounded-[8px] border border-cream-200 shadow-sm p-6 sm:p-8 flex flex-col gap-6">
 
                 {/* STEP 1: Job Details */}
@@ -403,7 +461,9 @@ const JobFormPage = () => {
 
                         {/* Skill Selector */}
                         <div className="flex flex-col gap-2">
-                            <label className="text-[14px] font-medium text-ink">Required Skills</label>
+                            <label className="text-[14px] font-medium text-ink">
+                                Required Skills <span className="text-brand-danger">*</span>
+                            </label>
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 text-[18px]">
                                     search
@@ -428,7 +488,7 @@ const JobFormPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleSkillToggle(skill)}
-                                                className="hover:opacity-75 font-bold"
+                                                className="hover:opacity-75 font-bold border-0 bg-transparent text-white cursor-pointer"
                                             >
                                                 ×
                                             </button>
@@ -450,7 +510,7 @@ const JobFormPage = () => {
                                                 key={skill._id}
                                                 type="button"
                                                 onClick={() => handleSkillToggle(skill.name)}
-                                                className={`px-3 py-1 rounded-full text-[12px] font-medium border transition-colors ${isChecked
+                                                className={`px-3 py-1 rounded-full text-[12px] font-medium border transition-colors cursor-pointer ${isChecked
                                                     ? 'bg-brand-teal text-white border-brand-teal'
                                                     : 'bg-white text-ink border-cream-200 hover:border-teal-600'
                                                     }`}
@@ -518,6 +578,7 @@ const JobFormPage = () => {
                                 <input
                                     id="budgetMin"
                                     type="number"
+                                    min="1"
                                     name="budgetMin"
                                     value={formData.budgetMin}
                                     onChange={handleChange}
@@ -533,6 +594,7 @@ const JobFormPage = () => {
                                 <input
                                     id="budgetMax"
                                     type="number"
+                                    min="1"
                                     name="budgetMax"
                                     value={formData.budgetMax}
                                     onChange={handleChange}
@@ -548,6 +610,7 @@ const JobFormPage = () => {
                                 <input
                                     id="deadline"
                                     type="date"
+                                    min={todayStr}
                                     name="deadline"
                                     value={formData.deadline}
                                     onChange={handleChange}
@@ -590,7 +653,7 @@ const JobFormPage = () => {
                                                 href={file.url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="flex items-center gap-2 font-medium text-teal-600 hover:text-ink transition-colors"
+                                                className="flex items-center gap-2 font-medium text-teal-600 hover:text-ink transition-colors no-underline"
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">attach_file</span>
                                                 {file.name || 'Attachment'}
@@ -598,7 +661,7 @@ const JobFormPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveAttachment(file.public_id)}
-                                                className="text-brand-danger font-semibold px-2 hover:opacity-80 text-[16px]"
+                                                className="text-brand-danger font-semibold px-2 hover:opacity-80 text-[16px] border-0 bg-transparent cursor-pointer"
                                             >
                                                 ×
                                             </button>
@@ -637,7 +700,7 @@ const JobFormPage = () => {
                             <button
                                 type="button"
                                 onClick={handlePrev}
-                                className="px-5 py-2.5 rounded-[8px] border border-cream-200 text-[14px] font-medium text-teal-600 hover:bg-brand-cream transition-colors"
+                                className="px-5 py-2.5 rounded-[8px] border border-cream-200 text-[14px] font-medium text-teal-600 hover:bg-brand-cream transition-colors cursor-pointer bg-white"
                             >
                                 Previous Step
                             </button>
@@ -648,9 +711,9 @@ const JobFormPage = () => {
                         {!isEditMode && currentStep === 3 && (
                             <button
                                 type="button"
-                                onClick={() => handleSave('draft')}
+                                onClick={() => triggerSavePrompt('draft')}
                                 disabled={loading || uploadingFile || optionsLoading}
-                                className="px-5 py-2.5 rounded-[8px] border border-cream-200 bg-white hover:bg-brand-cream text-[14px] font-medium text-ink transition-colors disabled:opacity-50"
+                                className="px-5 py-2.5 rounded-[8px] border border-cream-200 bg-white hover:bg-brand-cream text-[14px] font-medium text-ink transition-colors disabled:opacity-50 cursor-pointer"
                             >
                                 Save as Draft
                             </button>
@@ -660,24 +723,56 @@ const JobFormPage = () => {
                             <button
                                 type="button"
                                 onClick={handleNext}
-                                className="px-6 py-2.5 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium hover:opacity-90 transition-opacity"
+                                className="px-6 py-2.5 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium hover:bg-teal-900 transition-colors border-0 cursor-pointer"
                             >
                                 Next Step
                             </button>
                         ) : (
                             <button
                                 type="button"
-                                onClick={() => handleSave()}
+                                onClick={() => triggerSavePrompt()}
                                 disabled={loading || uploadingFile || optionsLoading}
-                                className="px-6 py-2.5 bg-accent-sand hover:bg-accent-sand-hover text-white rounded-[8px] text-[14px] font-medium transition-colors disabled:opacity-50 shadow-xs"
+                                className="px-6 py-2.5 bg-brand-teal hover:bg-teal-900 text-white rounded-[8px] text-[14px] font-medium transition-colors disabled:opacity-50 shadow-xs border-0 cursor-pointer"
                             >
                                 {loading ? 'Saving...' : isEditMode ? 'Update Job' : 'Publish Job'}
                             </button>
                         )}
                     </div>
                 </div>
-
             </div>
+
+            {/* Custom Confirmation Modal */}
+            {confirmModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-cream-200 animate-fadeIn">
+                        <div className="w-12 h-12 rounded-full bg-cream-200 text-brand-teal flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-2xl">publish</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-ink mb-1 m-0">{confirmModal.title}</h3>
+                        <p className="text-xs text-gray-500 mb-6 leading-relaxed m-0">
+                            {confirmModal.message}
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setConfirmModal({ isOpen: false, overrideStatus: null, title: '', message: '' })}
+                                disabled={loading}
+                                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 bg-white cursor-pointer disabled:opacity-50"
+                            >
+                                Review Again
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeSave}
+                                disabled={loading}
+                                className="px-4 py-2 text-xs font-bold bg-brand-teal text-white rounded-lg hover:bg-teal-900 transition-colors border-0 cursor-pointer disabled:opacity-50 min-w-[80px]"
+                            >
+                                {loading ? 'Processing...' : 'Confirm'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

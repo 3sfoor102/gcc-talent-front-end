@@ -12,7 +12,8 @@ const ClientJobsPage = () => {
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+    const [jobToDelete, setJobToDelete] = useState(null);
 
     const fetchMyJobs = async () => {
         setLoading(true);
@@ -22,8 +23,8 @@ const ClientJobsPage = () => {
             if (status) filters.status = status;
 
             const response = await getClientJobs(filters);
-            setJobs(response.data);
-            setMeta(response.meta);
+            setJobs(response.data || []);
+            setMeta(response.meta || { page: 1, limit: 12, total: response.data?.length || 0 });
         } catch (err) {
             setError(err.response?.data?.error?.message || err.message || 'Failed to load client jobs');
         } finally {
@@ -40,22 +41,38 @@ const ClientJobsPage = () => {
         setCurrentPage(1);
     };
 
-    const executeDelete = async (jobId) => {
+    const executeDelete = async () => {
+        if (!jobToDelete) return;
+
+        // Restriction: Only drafts or zero-proposal jobs should be allowed to be deleted
+        if (jobToDelete.status !== 'draft' && (jobToDelete.proposalsCount || 0) > 0) {
+            setError('Cannot delete an active job with submitted proposals. Close it instead.');
+            setJobToDelete(null);
+            return;
+        }
+
         setActionLoading(true);
         setError(null);
         try {
-            await deleteJob(jobId);
-            setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobId));
+            await deleteJob(jobToDelete._id);
+            setJobs((prevJobs) => prevJobs.filter((job) => job._id !== jobToDelete._id));
             setMeta((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }));
-            setConfirmDeleteId(null);
+            setJobToDelete(null);
         } catch (err) {
             setError(err.response?.data?.error?.message || err.message || 'Failed to delete job');
+            setJobToDelete(null);
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleToggleClose = async (job) => {
+        // Restriction: in_progress or completed jobs cannot be manually toggled to closed/open here
+        if (job.status === 'in_progress' || job.status === 'completed') {
+            setError(`Cannot modify status directly. This job is currently ${job.status.replace('_', ' ')}.`);
+            return;
+        }
+
         setActionLoading(true);
         setError(null);
         try {
@@ -67,7 +84,7 @@ const ClientJobsPage = () => {
             }
 
             setJobs((prevJobs) =>
-                prevJobs.map((item) => (item._id === job._id ? { ...item, status: updated.status } : item))
+                prevJobs.map((item) => (item._id === job._id ? { ...item, status: updated?.status || item.status } : item))
             );
         } catch (err) {
             setError(err.response?.data?.error?.message || err.message || 'Failed to change job status');
@@ -96,7 +113,7 @@ const ClientJobsPage = () => {
     };
 
     return (
-        <div className="w-full max-w-[1280px] mx-auto px-6 py-10 flex flex-col gap-8">
+        <div className="w-full max-w-[1280px] mx-auto px-6 py-10 flex flex-col gap-8 relative">
             {/* Top Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -107,7 +124,7 @@ const ClientJobsPage = () => {
                 </div>
                 <Link
                     to="/client/jobs/new"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent-sand hover:bg-accent-sand-hover text-white rounded-[8px] text-[14px] font-medium shadow-xs transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-teal hover:bg-teal-900 text-white rounded-[8px] text-[14px] font-medium shadow-xs transition-colors no-underline"
                 >
                     <span className="material-symbols-outlined text-[18px]">add</span>
                     Post a New Job
@@ -143,8 +160,15 @@ const ClientJobsPage = () => {
 
             {/* Error Alert */}
             {error && (
-                <div className="p-4 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[14px]">
-                    {error}
+                <div className="p-4 bg-[#FDECEB] text-brand-danger border border-brand-danger/20 rounded-[8px] text-[14px] flex justify-between items-center">
+                    <span>{error}</span>
+                    <button
+                        type="button"
+                        onClick={() => setError(null)}
+                        className="text-brand-danger font-bold border-0 bg-transparent cursor-pointer text-sm"
+                    >
+                        Dismiss
+                    </button>
                 </div>
             )}
 
@@ -165,7 +189,7 @@ const ClientJobsPage = () => {
                     </p>
                     <Link
                         to="/client/jobs/new"
-                        className="mt-2 px-4 py-2 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium"
+                        className="mt-2 px-4 py-2 bg-brand-teal text-white rounded-[8px] text-[14px] font-medium no-underline hover:bg-teal-900 transition-colors"
                     >
                         Create Your First Job
                     </Link>
@@ -188,12 +212,12 @@ const ClientJobsPage = () => {
                                             job.status
                                         )}`}
                                     >
-                                        {job.status.replace('_', ' ')}
+                                        {job.status?.replace('_', ' ')}
                                     </span>
                                     <Link
                                         to={`/client/jobs/${job._id}/proposals`}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="flex items-center gap-1 text-[13px] font-medium text-teal-600 hover:text-ink transition-colors"
+                                        className="flex items-center gap-1 text-[13px] font-medium text-teal-600 hover:text-ink transition-colors no-underline"
                                     >
                                         <span className="material-symbols-outlined text-[16px]">mail</span>
                                         {job.proposalsCount || 0} Proposals
@@ -221,7 +245,7 @@ const ClientJobsPage = () => {
                                     {(job.status === 'open' || job.status === 'draft') && (
                                         <Link
                                             to={`/client/jobs/${job._id}/edit`}
-                                            className="px-3 py-1.5 bg-brand-cream border border-cream-200 hover:bg-cream-200 rounded-[6px] text-[12px] font-medium text-ink transition-colors"
+                                            className="px-3 py-1.5 bg-brand-cream border border-cream-200 hover:bg-cream-200 rounded-[6px] text-[12px] font-medium text-ink transition-colors no-underline"
                                         >
                                             Edit
                                         </Link>
@@ -232,7 +256,7 @@ const ClientJobsPage = () => {
                                             type="button"
                                             onClick={() => handleToggleClose(job)}
                                             disabled={actionLoading}
-                                            className="px-3 py-1.5 border border-cream-200 hover:border-teal-600 text-teal-600 rounded-[6px] text-[12px] font-medium transition-colors"
+                                            className="px-3 py-1.5 border border-cream-200 hover:border-teal-600 text-teal-600 rounded-[6px] text-[12px] font-medium transition-colors bg-white cursor-pointer disabled:opacity-50"
                                         >
                                             Close
                                         </button>
@@ -243,7 +267,7 @@ const ClientJobsPage = () => {
                                             type="button"
                                             onClick={() => handleToggleClose(job)}
                                             disabled={actionLoading}
-                                            className="px-3 py-1.5 bg-brand-teal text-white rounded-[6px] text-[12px] font-medium hover:opacity-90 transition-opacity"
+                                            className="px-3 py-1.5 bg-brand-teal text-white rounded-[6px] text-[12px] font-medium hover:bg-teal-900 transition-colors border-0 cursor-pointer disabled:opacity-50"
                                         >
                                             Reopen
                                         </button>
@@ -251,38 +275,15 @@ const ClientJobsPage = () => {
                                 </div>
 
                                 {job.status === 'draft' && (
-                                    <div>
-                                        {confirmDeleteId === job._id ? (
-                                            <div className="flex items-center gap-1.5">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => executeDelete(job._id)}
-                                                    disabled={actionLoading}
-                                                    className="px-2.5 py-1 bg-brand-danger text-white rounded-[6px] text-[11px] font-medium hover:opacity-90"
-                                                >
-                                                    Confirm
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setConfirmDeleteId(null)}
-                                                    disabled={actionLoading}
-                                                    className="px-2 py-1 text-teal-600 text-[11px]"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => setConfirmDeleteId(job._id)}
-                                                disabled={actionLoading}
-                                                className="p-1.5 text-brand-danger/70 hover:text-brand-danger rounded-[6px] transition-colors"
-                                                title="Delete Draft"
-                                            >
-                                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                                            </button>
-                                        )}
-                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setJobToDelete(job)}
+                                        disabled={actionLoading}
+                                        className="p-1.5 text-brand-danger/70 hover:text-brand-danger rounded-[6px] transition-colors border-0 bg-transparent cursor-pointer"
+                                        title="Delete Draft"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
                                 )}
                             </div>
                         </article>
@@ -296,7 +297,7 @@ const ClientJobsPage = () => {
                     <button
                         onClick={() => setCurrentPage((prev) => prev - 1)}
                         disabled={currentPage <= 1 || loading}
-                        className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs"
+                        className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs cursor-pointer"
                     >
                         Previous
                     </button>
@@ -306,10 +307,43 @@ const ClientJobsPage = () => {
                     <button
                         onClick={() => setCurrentPage((prev) => prev + 1)}
                         disabled={currentPage >= totalPages || loading}
-                        className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs"
+                        className="px-4 py-2 bg-white border border-cream-200 text-ink rounded-[8px] text-[13px] font-medium disabled:opacity-40 hover:bg-cream-100 transition-colors shadow-xs cursor-pointer"
                     >
                         Next
                     </button>
+                </div>
+            )}
+
+            {/* Confirmation Modal for Job Deletion */}
+            {jobToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-cream-200 animate-fadeIn">
+                        <div className="w-12 h-12 rounded-full bg-red-50 text-brand-danger flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-2xl">delete_forever</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-ink mb-1 m-0">Delete Job Listing?</h3>
+                        <p className="text-xs text-gray-500 mb-6 leading-relaxed m-0">
+                            Are you sure you want to delete <strong className="text-ink">"{jobToDelete.title}"</strong>? This action cannot be undone.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setJobToDelete(null)}
+                                disabled={actionLoading}
+                                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 bg-white cursor-pointer disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeDelete}
+                                disabled={actionLoading}
+                                className="px-4 py-2 text-xs font-bold bg-brand-danger text-white rounded-lg hover:bg-red-700 transition-colors border-0 cursor-pointer disabled:opacity-50 min-w-[80px]"
+                            >
+                                {actionLoading ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

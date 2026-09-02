@@ -1,4 +1,4 @@
-import axiosInstance from './axios-instance';
+import axiosInstance from "./axiosInstance"
 
 const submitContractReview = async (contractId, reviewData) => {
     const res = await axiosInstance.post(`/contracts/${contractId}/reviews`, reviewData)
