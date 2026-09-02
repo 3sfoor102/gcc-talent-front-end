@@ -23,6 +23,7 @@ import ManageReports from "./pages/ManageReports";
 // Ali Alasfoor's imports
 import ContractsPage from "./pages/ContractsPage";
 import ContractWorkspacePage from "./pages/ContractWorkspacePage";
+import WalletPage from "./pages/WalletPage";
 
 // Hasan Ali's imports
 import JobsPage from "./pages/Jobs";
@@ -243,6 +244,16 @@ const App = () => {
             element={
               <ProtectedRoute user={user}>
                 <ContractsPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Wallet Routes */}
+          <Route
+            path="/wallet"
+            element={
+              <ProtectedRoute user={user}>
+                <WalletPage user={user} />
               </ProtectedRoute>
             }
           />
