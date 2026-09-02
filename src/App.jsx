@@ -13,6 +13,8 @@ import Settings from "./components/Settings"
 import Profile from "./components/Profile"
 import EditProfile from "./components/EditProfile"
 import ManageUsers from "./pages/ManageUsers";
+import ManageCategories from "./pages/ManageCategories";
+import ManageReports from "./pages/ManageReports";
 
 // Ali Alasfoor's imports
 
@@ -116,6 +118,14 @@ const App = () => {
           <Route 
             path="/admin/users" 
             element={user?.role === 'admin' ? <ManageUsers /> : <Landing />} 
+          />
+          <Route 
+            path="/admin/categories" 
+            element={user?.role === 'admin' ? <ManageCategories /> : <Landing />} 
+          />
+          <Route 
+            path="/admin/reports" 
+            element={user?.role === 'admin' ? <ManageReports /> : <Landing />} 
           />
           <Route path="/sign-up" element={<SignUpForm setUser={setUser} />} />
           <Route path="/sign-in" element={<SignInForm setUser={setUser} />} />
