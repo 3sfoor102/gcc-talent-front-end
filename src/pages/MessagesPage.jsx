@@ -30,6 +30,7 @@ const MessagesPage = ({ user }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  // 1. Initial Load & Conversation Initiation
   useEffect(() => {
     const initInbox = async () => {
       try {
@@ -52,7 +53,8 @@ const MessagesPage = ({ user }) => {
             convList = [created, ...convList]
             setActiveConversation(created)
           }
-        } else if (convList.length > 0) {
+        } else if (window.innerWidth >= 768 && convList.length > 0) {
+          // Only auto-select first conversation on desktop screens
           setActiveConversation(convList[0])
         }
 
@@ -67,6 +69,7 @@ const MessagesPage = ({ user }) => {
     if (currentUserId) initInbox()
   }, [targetRecipientId, targetJobId, currentUserId])
 
+  // 2. Fetch Messages & Polling
   useEffect(() => {
     if (!activeConversation?._id) return
 
@@ -90,8 +93,9 @@ const MessagesPage = ({ user }) => {
     scrollToBottom()
   }, [messages])
 
-  const handleSend = async (event) => {
-    event?.preventDefault()
+  // 3. Handlers
+  const handleSend = async (e) => {
+    e?.preventDefault()
     if (!messageText.trim() || sending || !activeConversation?._id) return
 
     const textToSend = messageText.trim()
@@ -111,15 +115,15 @@ const MessagesPage = ({ user }) => {
     }
   }
 
-  const handleKeyDown = (event) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault()
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
       handleSend()
     }
   }
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files?.[0]
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
     if (!file || !activeConversation?._id) return
 
     setUploadingFile(true)
@@ -134,14 +138,14 @@ const MessagesPage = ({ user }) => {
       alert("File upload failed.")
     } finally {
       setUploadingFile(false)
-      event.target.value = ""
+      e.target.value = ""
     }
   }
 
   const getOtherParticipant = (conv) => {
     return (
-      conv.participants?.find(
-        (p) => (p._id || p).toString() !== currentUserId.toString()
+      conv?.participants?.find(
+        (p) => (p._id || p).toString() !== currentUserId?.toString()
       ) || { name: "Participant" }
     )
   }
@@ -167,10 +171,15 @@ const MessagesPage = ({ user }) => {
 
   return (
     <main
-      className="flex-grow flex overflow-hidden w-full max-w-[1280px] mx-auto px-4 md:px-6 py-6 gap-6"
+      className="flex-grow flex overflow-hidden w-full max-w-[1280px] mx-auto px-2 sm:px-4 md:px-6 py-4 md:py-6 gap-6"
       style={{ height: "calc(100vh - 80px)" }}
     >
-      <aside className="w-full md:w-80 flex-shrink-0 flex flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden">
+
+      <aside
+        className={`${
+          activeConversation ? "hidden md:flex" : "flex"
+        } w-full md:w-80 flex-shrink-0 flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden`}
+      >
         <div className="p-4 border-b border-cream-200 bg-white">
           <h2 className="font-semibold text-xl text-ink mb-4">Messages</h2>
           <div className="relative w-full">
@@ -181,7 +190,7 @@ const MessagesPage = ({ user }) => {
               type="text"
               placeholder="Search conversations"
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-[#f4f7f6] border border-cream-200 rounded-lg py-2 pl-10 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-brand-teal focus:border-brand-teal transition-all text-ink placeholder:text-gray-400"
             />
           </div>
@@ -251,11 +260,26 @@ const MessagesPage = ({ user }) => {
         </div>
       </aside>
 
-      <section className="flex-grow flex flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden">
+      <section
+        className={`${
+          activeConversation ? "flex" : "hidden md:flex"
+        } flex-grow flex-col bg-white rounded-xl border border-cream-200 shadow-xs overflow-hidden w-full`}
+      >
         {activeConversation && activePartner ? (
           <>
-            <header className="p-4 border-b border-cream-200 bg-white flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-3">
+            <header className="p-3.5 sm:p-4 border-b border-cream-200 bg-white flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveConversation(null)}
+                  className="md:hidden p-1 -ml-1 text-gray-500 hover:text-brand-teal cursor-pointer bg-transparent border-0 flex items-center"
+                  aria-label="Back to conversations"
+                >
+                  <span className="material-symbols-outlined text-2xl">
+                    arrow_back
+                  </span>
+                </button>
+
                 <div className="relative shrink-0">
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-cream-200 flex items-center justify-center text-brand-teal font-bold text-sm border border-cream-200">
                     {activePartner.avatarUrl ? (
@@ -291,9 +315,7 @@ const MessagesPage = ({ user }) => {
               </div>
             </header>
 
-            <div
-              className="flex-grow p-6 overflow-y-auto custom-scrollbar flex flex-col gap-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjBmY2ZkIiAvPgo8Y2lyY2xlIGN4PSIxIiBjeT0iMSIgcj0iMSIgZmlsbD0iI2Q5ZTVlNiIgLz4KPC9zdmc+')] bg-repeat"
-            >
+            <div className="flex-grow p-4 sm:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZjBmY2ZkIiAvPgo8Y2lyY2xlIGN4PSIxIiBjeT0iMSIgcj0iMSIgZmlsbD0iI2Q5ZTVlNiIgLz4KPC9zdmc+')] bg-repeat">
               <div className="flex justify-center w-full my-1">
                 <span className="bg-[#e4eff0] text-gray-600 text-[11px] font-medium px-3 py-1 rounded-full shadow-2xs">
                   Today
@@ -309,12 +331,12 @@ const MessagesPage = ({ user }) => {
                 return (
                   <div
                     key={msg._id || index}
-                    className={`flex gap-3 max-w-[80%] ${
+                    className={`flex gap-2 sm:gap-3 max-w-[88%] sm:max-w-[80%] ${
                       isMine ? "self-end flex-row-reverse" : "self-start"
                     }`}
                   >
                     {!isMine && (
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-cream-200 flex items-center justify-center text-brand-teal font-bold text-xs shrink-0 mt-auto border border-cream-200">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-cream-200 flex items-center justify-center text-brand-teal font-bold text-xs shrink-0 mt-auto border border-cream-200">
                         {senderPartner?.avatarUrl ? (
                           <img
                             src={senderPartner.avatarUrl}
@@ -333,7 +355,7 @@ const MessagesPage = ({ user }) => {
                       }`}
                     >
                       <div
-                        className={`p-3.5 rounded-2xl text-[13px] leading-relaxed shadow-2xs whitespace-pre-line ${
+                        className={`p-3 sm:p-3.5 rounded-2xl text-[13px] leading-relaxed shadow-2xs whitespace-pre-line ${
                           isMine
                             ? "bg-brand-teal text-white rounded-br-xs"
                             : "bg-[#eaf4f5] text-ink border border-cream-200/60 rounded-bl-xs"
@@ -349,7 +371,7 @@ const MessagesPage = ({ user }) => {
                                 href={att.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className={`flex items-center gap-3 p-2.5 rounded-lg border text-xs no-underline transition-colors w-64 ${
+                                className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs no-underline transition-colors max-w-full sm:w-64 ${
                                   isMine
                                     ? "bg-teal-900/40 border-teal-700 text-white hover:bg-teal-900/60"
                                     : "bg-white border-cream-200 text-ink hover:bg-brand-cream/30"
@@ -403,12 +425,12 @@ const MessagesPage = ({ user }) => {
               <div ref={messagesEndRef} />
             </div>
 
-            <footer className="p-4 border-t border-cream-200 bg-white flex-shrink-0">
+            <footer className="p-3 sm:p-4 border-t border-cream-200 bg-white flex-shrink-0">
               <form
                 onSubmit={handleSend}
-                className="flex items-end gap-2 bg-[#f4f7f6] border border-cream-200 rounded-xl p-2 focus-within:border-brand-teal focus-within:ring-1 focus-within:ring-brand-teal transition-all"
+                className="flex items-end gap-2 bg-[#f4f7f6] border border-cream-200 rounded-xl p-1.5 sm:p-2 focus-within:border-brand-teal focus-within:ring-1 focus-within:ring-brand-teal transition-all"
               >
-                <label className="p-2 text-gray-500 hover:text-brand-teal transition-colors rounded-full shrink-0 cursor-pointer">
+                <label className="p-1.5 sm:p-2 text-gray-500 hover:text-brand-teal transition-colors rounded-full shrink-0 cursor-pointer">
                   <span className="material-symbols-outlined text-xl">
                     attach_file
                   </span>
@@ -422,23 +444,23 @@ const MessagesPage = ({ user }) => {
 
                 <textarea
                   value={messageText}
-                  onChange={(event) => setMessageText(event.target.value)}
+                  onChange={(e) => setMessageText(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={
                     uploadingFile ? "Uploading file..." : "Type a message..."
                   }
                   rows={1}
                   disabled={uploadingFile}
-                  className="w-full bg-transparent border-none focus:ring-0 resize-none max-h-32 min-h-[40px] py-2 text-sm text-ink placeholder:text-gray-400 outline-none"
+                  className="w-full bg-transparent border-none focus:ring-0 resize-none max-h-32 min-h-[38px] py-2 text-xs sm:text-sm text-ink placeholder:text-gray-400 outline-none"
                 />
 
                 <button
                   type="submit"
                   disabled={sending || uploadingFile || !messageText.trim()}
-                  className="p-2.5 bg-brand-teal text-white rounded-full hover:bg-teal-900 transition-opacity shrink-0 flex items-center justify-center disabled:opacity-40 cursor-pointer border-0"
+                  className="p-2 sm:p-2.5 bg-brand-teal text-white rounded-full hover:bg-teal-900 transition-opacity shrink-0 flex items-center justify-center disabled:opacity-40 cursor-pointer border-0"
                 >
                   <span
-                    className="material-symbols-outlined text-lg"
+                    className="material-symbols-outlined text-base sm:text-lg"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                   >
                     send
